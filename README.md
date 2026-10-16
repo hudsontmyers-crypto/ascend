@@ -1,0 +1,7 @@
+# Ascend
+
+An RPG habit tracker. Quests, XP, HP, a weekly boss, earned screen time, workout PRs, a gear shop, and an optional AI coach.
+
+Everything is saved in your browser on each device. Nothing is sent to a server except AI coach messages, which go to the AI provider you choose with your own API key.
+
+**Install on iPad/iPhone:** open the site in Safari → Share → Add to Home Screen.

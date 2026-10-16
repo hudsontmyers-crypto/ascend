@@ -1,0 +1,1397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ascend</title>
+<meta name="theme-color" content="#0e0c14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ascend">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0c14; --bg2:#120f19; --panel:#17141f; --panel2:#201c2b; --line:#2c2639;
+  --text:#ece8f4; --muted:#9a93ab; --dim:#6b6480;
+  --gold:#f5c451; --hp:#ef4444; --xp:#8b5cf6; --ok:#22c55e; --warn:#f59e0b;
+  --str:#f97316; --int:#38bdf8; --craft:#a78bfa; --vit:#22c55e; --focus:#f472b6;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--text);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--xp);outline-offset:-1px}
+textarea{resize:vertical;min-height:70px}
+h1,h2,h3{margin:0}
+.serif{font-family:Cinzel,serif}
+
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+nav.side{position:sticky;top:0;height:100vh;padding:calc(18px + env(safe-area-inset-top)) 10px 18px;border-right:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column;gap:2px}
+.brand{font-family:Cinzel,serif;font-weight:800;font-size:22px;letter-spacing:3px;color:var(--gold);padding:4px 12px 18px}
+.nav-btn{display:flex;gap:10px;align-items:center;width:100%;padding:11px 12px;border-radius:10px;color:var(--muted);background:none;border:0;font-weight:600;text-align:left;position:relative}
+.nav-btn .ico{font-size:18px;width:22px;text-align:center}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{background:var(--panel2);color:var(--text)}
+.nav-btn .dot{position:absolute;right:10px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--hp)}
+main{padding:calc(20px + env(safe-area-inset-top)) 28px 40px;max-width:1120px;width:100%;margin:0 auto;min-width:0}
+
+/* hero */
+.hero{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;background:linear-gradient(135deg,#1d1828,#15121d);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:22px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(245,196,81,.12),transparent 70%);pointer-events:none}
+.avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-size:36px;background:radial-gradient(circle at 35% 30%,#3a2f52,#1a1524);border:2px solid var(--gold);position:relative}
+.avatar .lvl{position:absolute;bottom:-6px;right:-6px;background:var(--gold);color:#1a1300;font-weight:800;font-size:12px;border-radius:999px;padding:2px 8px;border:2px solid var(--bg)}
+.hero-name{font-family:Cinzel,serif;font-size:22px;font-weight:800;letter-spacing:.5px}
+.hero-name .title{font-family:Inter;font-weight:600;font-size:13px;color:var(--gold);margin-left:6px}
+.hero-sub{color:var(--muted);font-size:13px;margin:2px 0 10px}
+.bars{display:grid;gap:7px;max-width:460px}
+.bar{display:grid;grid-template-columns:28px 1fr 74px;gap:8px;align-items:center;font-size:12px;font-weight:700}
+.bar .lab{color:var(--muted)}
+.bar .val{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.track{height:10px;background:#0b0910;border-radius:99px;overflow:hidden;border:1px solid #2a2436}
+.fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.fill.hp{background:linear-gradient(90deg,#b91c1c,var(--hp))}
+.fill.xp{background:linear-gradient(90deg,#6d28d9,var(--xp))}
+.hero-stats{display:grid;gap:8px;text-align:right}
+.chip{display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.chip small{font-weight:600;color:var(--muted);font-size:11px}
+
+/* generic */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.lift-grid{grid-template-columns:2fr 1fr 1fr 1fr}
+.coach-grid{grid-template-columns:2fr 1fr}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card h3{font-size:15px;margin-bottom:10px}
+.section-title{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px}
+.section-title h2{font-family:Cinzel,serif;font-size:17px;letter-spacing:.5px}
+.section-title .sub{color:var(--muted);font-size:13px}
+.section-title .right{margin-left:auto;color:var(--muted);font-size:13px;font-weight:600}
+.now-badge{background:var(--xp);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.5px}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .gold{color:var(--gold)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px}
+.btn:hover{border-color:#433a56}
+.btn.primary{background:var(--xp);border-color:var(--xp);color:#fff}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1a1300}
+.btn.danger{background:transparent;border-color:#5b2330;color:#fca5a5}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+label.f{display:grid;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+
+/* coach bubble */
+.coach{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.35);border-radius:var(--r);padding:14px 16px}
+.coach .face{font-size:26px;line-height:1}
+.coach .who{font-size:11px;font-weight:800;letter-spacing:1px;color:#c4b5fd;text-transform:uppercase;margin-bottom:3px}
+.coach .msg{font-size:15px;line-height:1.45}
+.typing::after{content:"…";animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+
+/* quests */
+.quests{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.quest{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:transform .12s,border-color .2s,background .2s;position:relative;overflow:hidden}
+.quest::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c)}
+.quest.done{background:#141a16;border-color:#1f3b2a}
+.quest.done .qname{color:var(--muted);text-decoration:line-through;text-decoration-color:#3d5a47}
+.quest .qi{font-size:22px;width:30px;text-align:center}
+.quest .qbody{flex:1;min-width:0}
+.quest .qname{font-weight:700;font-size:14.5px}
+.quest .qmeta{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.qmeta .x{color:#c4b5fd;font-weight:700} .qmeta .g{color:var(--gold);font-weight:700} .qmeta .m{color:#7dd3fc;font-weight:700} .qmeta .s{color:var(--str);font-weight:700}
+.check{width:38px;height:38px;border-radius:11px;border:2px solid #3b3350;background:var(--bg2);display:grid;place-items:center;font-size:18px;font-weight:900;flex:none;transition:all .15s}
+.check:hover{border-color:var(--ok)}
+.quest.done .check{background:var(--ok);border-color:var(--ok);color:#06240f}
+.quest:active{transform:scale(.985)}
+.counter{display:flex;align-items:center;gap:6px}
+.counter button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);font-weight:900}
+.counter .n{min-width:44px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:3px;margin-top:6px}
+.pips i{width:14px;height:5px;border-radius:3px;background:#2c2639}
+.pips i.on{background:#38bdf8}
+
+/* screen */
+.meter{height:18px;background:#0b0910;border-radius:99px;overflow:hidden;border:1px solid #2a2436;position:relative}
+.meter .used{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#0ea5e9,#38bdf8);border-radius:99px}
+.meter .used.over{background:linear-gradient(90deg,#dc2626,#f87171)}
+.meter .earn{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--gold)}
+.big{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+
+/* boss */
+.boss{text-align:center;padding:28px 20px;background:radial-gradient(circle at 50% 20%,#2a1420,#17141f 70%)}
+.boss .bicon{font-size:84px;filter:drop-shadow(0 8px 24px rgba(239,68,68,.35));animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px)}}
+.boss .bhp{max-width:520px;margin:16px auto 6px}
+.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* shop */
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.item .ii{font-size:30px}
+.item .in{font-weight:800}
+.item .id{font-size:12px;color:var(--muted);flex:1}
+.item.owned{border-color:#3d3360}
+.item.eq{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+
+/* stats */
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:4px;overflow-x:auto;padding-bottom:4px}
+.heat i{width:14px;height:14px;border-radius:3px;background:#1f1b2a}
+.attr{display:grid;grid-template-columns:70px 1fr 40px;gap:10px;align-items:center;font-size:13px;font-weight:700;margin:8px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.ach{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:var(--panel2);opacity:.45}
+.ach.got{opacity:1;border:1px solid #4b3f22;background:linear-gradient(135deg,#2a2213,#1f1b2a)}
+.ach .ai{font-size:22px}
+
+/* chat */
+.chat{display:flex;flex-direction:column;gap:10px;max-height:56vh;overflow-y:auto;padding:4px}
+.bub{max-width:80%;padding:10px 14px;border-radius:14px;line-height:1.45;font-size:14.5px;white-space:pre-wrap}
+.bub.me{align-self:flex-end;background:var(--xp);color:#fff;border-bottom-right-radius:4px}
+.bub.ai{align-self:flex-start;background:var(--panel2);border-bottom-left-radius:4px}
+.feed{display:grid;gap:8px}
+.feed .fi{font-size:13px;color:var(--muted);padding:8px 10px;border-left:2px solid var(--line)}
+
+/* toast + modal */
+#toasts{position:fixed;right:18px;bottom:18px;display:grid;gap:8px;z-index:60;pointer-events:none}
+.toast{background:#211c2e;border:1px solid #3b3350;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:tin .25s ease-out}
+.toast.bad{border-color:#7f1d1d;background:#2a1418}
+.toast.good{border-color:#4b3f22}
+@keyframes tin{from{transform:translateY(12px);opacity:0}}
+#modal{position:fixed;inset:0;background:rgba(5,4,8,.72);display:none;place-items:center;z-index:70;padding:20px;backdrop-filter:blur(4px)}
+#modal.open{display:grid}
+.mbox{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:520px;width:100%;max-height:88vh;overflow:auto;animation:pop .25s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.mbox h2{font-family:Cinzel,serif;margin-bottom:8px}
+.burst{position:fixed;pointer-events:none;z-index:80;font-size:20px;animation:fly 1.1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+.floaty{position:fixed;pointer-events:none;z-index:80;font-weight:800;font-size:15px;color:#c4b5fd;animation:up 1s ease-out forwards;text-shadow:0 2px 8px #000}
+@keyframes up{to{transform:translateY(-46px);opacity:0}}
+
+@media (max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  nav.side{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;justify-content:space-around;padding:6px 2px calc(6px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid var(--line);z-index:30}
+  .brand{display:none}
+  .nav-btn{flex-direction:column;gap:2px;font-size:9.5px;padding:6px 2px;flex:1;align-items:center;text-align:center}
+  .nav-btn .dot{top:6px;right:auto;left:58%;margin:0}
+  main{padding:calc(14px + env(safe-area-inset-top)) 16px 96px}
+  .hero{grid-template-columns:auto 1fr;gap:14px;padding:14px}
+  .hero-stats{grid-column:1/-1;grid-auto-flow:column;text-align:left;justify-content:space-between}
+  .avatar{width:60px;height:60px;font-size:28px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .quests{grid-template-columns:1fr}
+  #toasts{left:16px;right:16px;bottom:84px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <div id="hero"></div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="toasts"></div>
+<div id="modal"><div class="mbox" id="mbox"></div></div>
+
+<script>
+/* =========================================================
+   ASCEND — Hudson's RPG habit tracker
+   All data lives in this browser (localStorage). No server.
+   ========================================================= */
+
+const KEY = 'ascend.v1';
+const DAY_START_HOUR = 3; // stuff done before 3 AM counts for the previous day
+
+const CATS = {
+  fitness:  { label: 'Fitness',  stat: 'STR',   color: 'var(--str)' },
+  school:   { label: 'School',   stat: 'INT',   color: 'var(--int)' },
+  business: { label: 'Business', stat: 'CRAFT', color: 'var(--craft)' },
+  health:   { label: 'Health',   stat: 'VIT',   color: 'var(--vit)' },
+  focus:    { label: 'Focus',    stat: 'FOCUS', color: 'var(--focus)' },
+};
+const SLOTS = [
+  { id: 'morning',     label: 'Morning',      sub: 'Before school',        icon: '🌅' },
+  { id: 'afterschool', label: 'After School', sub: 'Homework before screens', icon: '🏫' },
+  { id: 'anytime',     label: 'All Day',      sub: 'Keep these going',     icon: '☀️' },
+  { id: 'night',       label: 'Night',        sub: 'Wind down by 10',      icon: '🌙' },
+];
+const CLASSES = {
+  warrior: { name: 'Warrior', icon: '⚔️', bonus: { fitness: 0.25 }, desc: '+25% XP on fitness quests' },
+  mage:    { name: 'Mage',    icon: '🔮', bonus: { school: 0.25 },  desc: '+25% XP on school quests' },
+  rogue:   { name: 'Rogue',   icon: '🗡️', bonus: { business: 0.25 }, desc: '+25% XP on business quests' },
+  paladin: { name: 'Paladin', icon: '🛡️', bonus: { all: 0.10 },     desc: '+10% XP on everything' },
+};
+const RANKS = [[1,'Recruit'],[3,'Squire'],[6,'Knight'],[10,'Champion'],[15,'Warlord'],[20,'Legend'],[30,'Mythic']];
+const WEEKDAYS = [0,1,2,3,4,5,6], SCHOOLDAYS = [1,2,3,4,5], SCHOOLNIGHTS = [0,1,2,3,4];
+
+const DEFAULT_QUESTS = [
+  { id:'wake',     name:'Up by 6:30 AM',              icon:'⏰', cat:'focus',    slot:'morning',     xp:10, gold:5,  min:0,  days:SCHOOLDAYS },
+  { id:'stretch',  name:'Stretch / mobility 10 min',  icon:'🧘', cat:'health',   slot:'morning',     xp:10, gold:5,  min:5,  days:WEEKDAYS },
+  { id:'homework', name:'Homework before screens',    icon:'📚', cat:'school',   slot:'afterschool', xp:25, gold:15, min:20, days:SCHOOLNIGHTS },
+  { id:'study',    name:'Study / review 20 min',      icon:'🧠', cat:'school',   slot:'afterschool', xp:20, gold:10, min:10, days:SCHOOLNIGHTS },
+  { id:'workout',  name:'Workout',                    icon:'🏋️', cat:'fitness',  slot:'afterschool', xp:30, gold:15, min:15, days:WEEKDAYS, note:'Log it in Train for PRs' },
+  { id:'code',     name:'Build / code 30 min',        icon:'💻', cat:'business', slot:'afterschool', xp:25, gold:15, min:10, days:WEEKDAYS },
+  { id:'learn',    name:'Learn a skill',              icon:'🎓', cat:'business', slot:'afterschool', xp:15, gold:10, min:10, days:WEEKDAYS },
+  { id:'water',    name:'Drink water',                icon:'💧', cat:'health',   slot:'anytime',     xp:15, gold:5,  min:0,  days:WEEKDAYS, target:8, unit:'glasses' },
+  { id:'protein',  name:'Hit protein goal',           icon:'🥩', cat:'health',   slot:'anytime',     xp:15, gold:5,  min:0,  days:WEEKDAYS },
+  { id:'nojunk',   name:'No junk food',               icon:'🚫', cat:'health',   slot:'anytime',     xp:15, gold:5,  min:0,  days:WEEKDAYS },
+  { id:'read',     name:'Read 20 min',                icon:'📖', cat:'school',   slot:'night',       xp:15, gold:10, min:10, days:WEEKDAYS },
+  { id:'plan',     name:'Plan tomorrow & pack bag',   icon:'🗒️', cat:'school',   slot:'night',       xp:10, gold:5,  min:5,  days:SCHOOLNIGHTS },
+  { id:'bed',      name:'Lights out by 10:00 PM',     icon:'🛌', cat:'health',   slot:'night',       xp:15, gold:10, min:0,  days:SCHOOLNIGHTS },
+];
+
+const DEFAULT_REWARDS = [
+  { id:'r1', name:'Favorite snack',             icon:'🍫', cost:150 },
+  { id:'r2', name:'Extra 30 min gaming (weekend)', icon:'🎮', cost:250 },
+  { id:'r3', name:'Cheat meal',                 icon:'🍔', cost:400 },
+  { id:'r4', name:'New gym gear / clothes',      icon:'👟', cost:1500 },
+  { id:'r5', name:'Buy a new game',             icon:'🕹️', cost:3000 },
+];
+
+const GEAR = [
+  { id:'w_iron',   slot:'weapon', name:'Iron Sword',        icon:'🗡️', cost:300,  buff:{fitness:.05}, desc:'+5% fitness XP' },
+  { id:'w_tome',   slot:'weapon', name:"Scholar's Tome",    icon:'📘', cost:300,  buff:{school:.05},  desc:'+5% school XP' },
+  { id:'w_gaunt',  slot:'weapon', name:"Coder's Gauntlets", icon:'🧤', cost:300,  buff:{business:.05},desc:'+5% business XP' },
+  { id:'w_axe',    slot:'weapon', name:'Titan Axe',         icon:'🪓', cost:1200, buff:{fitness:.12}, desc:'+12% fitness XP' },
+  { id:'w_flame',  slot:'weapon', name:'Flame Blade',       icon:'🔥', cost:2500, buff:{all:.10},     desc:'+10% ALL XP' },
+  { id:'a_leather',slot:'armor',  name:'Leather Armor',     icon:'🦺', cost:250,  hp:10, desc:'+10 max HP' },
+  { id:'a_steel',  slot:'armor',  name:'Steel Plate',       icon:'🛡️', cost:900,  hp:25, desc:'+25 max HP' },
+  { id:'a_dragon', slot:'armor',  name:'Dragonscale Armor', icon:'🐉', cost:2500, hp:50, desc:'+50 max HP' },
+  { id:'h_helm',   slot:'helm',   name:'Steel Helm',        icon:'⛑️', cost:500,  hp:10, desc:'+10 max HP' },
+  { id:'h_crown',  slot:'helm',   name:'Crown of Focus',    icon:'👑', cost:2000, hp:10, buff:{focus:.25}, desc:'+10 HP, +25% focus XP' },
+];
+const TITLES = [
+  { id:'t_disc',    name:'the Disciplined', cost:400 },
+  { id:'t_gym',     name:'Gym Rat',         cost:500 },
+  { id:'t_scholar', name:'the Scholar',     cost:500 },
+  { id:'t_founder', name:'the Founder',     cost:800 },
+  { id:'t_iron',    name:'Iron Will',       cost:800 },
+  { id:'t_unbroken',name:'the Unbroken',    cost:1500 },
+  { id:'t_slayer',  name:'Bossbreaker',     cost:0, unlock:'boss' },
+];
+const BOSSES = [
+  { name:'The Scroll Goblin',      icon:'👺', lore:'Feeds on endless Shorts. Every video you skip is a sword strike.' },
+  { name:'Procrastination Wraith', icon:'👻', lore:'Whispers "just one more video" right before homework.' },
+  { name:'Sloth Titan',            icon:'🦥', lore:'Wants you on the couch instead of under the bar.' },
+  { name:'The Lag Lord',           icon:'🎮', lore:'Born from 1 AM gaming sessions. Hates bedtimes.' },
+  { name:'Junk-Food Hydra',        icon:'🐍', lore:'Cut off one craving and two more grow back.' },
+  { name:'Doubt Dragon',           icon:'🐲', lore:'Tells you week two is when everyone quits.' },
+];
+const ACH = [
+  { id:'first',  icon:'🩸', name:'First Blood',     desc:'Complete your first quest',            gold:25,  test:s=>s.counters.quests>=1 },
+  { id:'perfect',icon:'💎', name:'Flawless',        desc:'Finish a perfect day',                  gold:50,  test:s=>s.counters.perfect>=1 },
+  { id:'s3',     icon:'🔥', name:'On Fire',         desc:'3-day streak',                          gold:30,  test:s=>s.dayStreak.best>=3 },
+  { id:'s7',     icon:'⚡', name:'Week Warrior',    desc:'7-day streak (beat the week-2 fade!)',  gold:75,  test:s=>s.dayStreak.best>=7 },
+  { id:'s14',    icon:'🧱', name:'Past the Wall',   desc:'14-day streak',                         gold:150, test:s=>s.dayStreak.best>=14 },
+  { id:'s30',    icon:'🏔️', name:'Unbreakable',     desc:'30-day streak',                         gold:300, test:s=>s.dayStreak.best>=30 },
+  { id:'l5',     icon:'🛡️', name:'Squire No More',  desc:'Reach level 5',                         gold:50,  test:s=>s.hero.level>=5 },
+  { id:'l10',    icon:'⚔️', name:'Champion',        desc:'Reach level 10',                        gold:100, test:s=>s.hero.level>=10 },
+  { id:'l20',    icon:'👑', name:'Legend',          desc:'Reach level 20',                        gold:250, test:s=>s.hero.level>=20 },
+  { id:'boss',   icon:'💀', name:'Bossbreaker',     desc:'Defeat a weekly boss',                  gold:100, test:s=>s.counters.bosses>=1 },
+  { id:'pr',     icon:'📈', name:'New Record',      desc:'Set a lifting PR',                      gold:25,  test:s=>s.counters.prs>=1 },
+  { id:'w10',    icon:'🏋️', name:'Iron Habit',      desc:'Log 10 workouts',                       gold:75,  test:s=>s.counters.workouts>=10 },
+  { id:'w50',    icon:'🦾', name:'Machine',         desc:'Log 50 workouts',                       gold:250, test:s=>s.counters.workouts>=50 },
+  { id:'miles',  icon:'🏃', name:'Road Runner',     desc:'Run 25 total miles',                    gold:100, test:s=>s.counters.miles>=25 },
+  { id:'screen7',icon:'📵', name:'Screen Master',   desc:'7 days in a row under your screen limit', gold:100, test:s=>(s.streaks._screen||{}).best>=7 },
+  { id:'rich',   icon:'💰', name:'Treasure Hoard',  desc:'Hold 1,000 gold at once',               gold:0,   test:s=>s.hero.gold>=1000 },
+];
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,'0');
+const keyOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dayKey = () => keyOf(new Date(Date.now() - DAY_START_HOUR*3600e3));
+const fromKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (k,n) => { const d = fromKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const weekKey = k => { const d = fromKey(k); d.setDate(d.getDate() - (d.getDay()+6)%7); return keyOf(d); };
+const dow = k => fromKey(k).getDay();
+const prettyDay = k => fromKey(k).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+
+/* ---------- state ---------- */
+let state;
+function freshState(){
+  const today = dayKey();
+  return {
+    v: 1,
+    createdAt: today,
+    onboarded: false,
+    profile: { name:'Hudson', cls:'warrior', bedtime:'22:00', wake:'06:30', screenLimit:120, baseScreen:30 },
+    hero: { level:1, xp:0, totalXp:0, hp:50, gold:0, stats:{STR:0,INT:0,CRAFT:0,VIT:0,FOCUS:0} },
+    quests: JSON.parse(JSON.stringify(DEFAULT_QUESTS)),
+    rewards: JSON.parse(JSON.stringify(DEFAULT_REWARDS)),
+    log: {},
+    streaks: {},
+    dayStreak: { cur:0, best:0 },
+    lastProcessed: addDays(today,-1),
+    boss: null,
+    bossHistory: [],
+    owned: [],
+    equipped: { weapon:null, armor:null, helm:null, title:null },
+    redeemed: [],
+    achievements: {},
+    prs: {},
+    restWeeks: {},
+    counters: { quests:0, workouts:0, perfect:0, bosses:0, deaths:0, prs:0, miles:0 },
+    coach: { provider:'none', keys:{gemini:'',anthropic:''}, models:{gemini:'gemini-flash-latest', anthropic:'claude-opus-5-5'}, feed:[], chat:[], line:'' },
+    pendingReport: null,
+  };
+}
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) { state = Object.assign(freshState(), JSON.parse(raw)); return; } } catch(e){}
+  state = freshState();
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){ toast('⚠️ Could not save (storage full or blocked)','bad'); } }
+
+function getLog(k){
+  if (!state.log[k]) state.log[k] = { done:{}, counts:{}, screen:{youtube:0,games:0,logged:false}, workouts:[], journal:'', bonusMin:0 };
+  return state.log[k];
+}
+const todayLog = () => getLog(dayKey());
+const activeQuests = k => state.quests.filter(q => !q.archived && q.days.includes(dow(k)));
+
+/* ---------- hero math ---------- */
+const xpNeed = lvl => 100 + (lvl-1)*30;
+const gearOf = id => GEAR.find(g => g.id === id);
+const equippedGear = () => ['weapon','armor','helm'].map(s => gearOf(state.equipped[s])).filter(Boolean);
+const maxHp = () => 50 + (state.hero.level-1)*5 + equippedGear().reduce((a,g)=>a+(g.hp||0),0);
+const rankOf = lvl => RANKS.filter(r => lvl >= r[0]).pop()[1];
+function xpMult(cat){
+  const cls = CLASSES[state.profile.cls] || CLASSES.warrior;
+  let m = 1 + (cls.bonus[cat]||0) + (cls.bonus.all||0);
+  for (const g of equippedGear()) if (g.buff) m += (g.buff[cat]||0) + (g.buff.all||0);
+  return m;
+}
+function gainXp(base, cat, silent){
+  const xp = Math.round(base * xpMult(cat));
+  const h = state.hero;
+  h.xp += xp; h.totalXp += xp;
+  while (h.xp >= xpNeed(h.level)) {
+    h.xp -= xpNeed(h.level); h.level++;
+    h.hp = maxHp();
+    const bonus = 25 + h.level*5; h.gold += bonus;
+    if (!silent) queueModal(levelUpModal(h.level, bonus));
+    coachEvent('levelup', `Reached level ${h.level} (${rankOf(h.level)})`);
+  }
+  return xp;
+}
+function loseXp(n){
+  const h = state.hero;
+  h.xp -= n; h.totalXp = Math.max(0, h.totalXp - n);
+  while (h.xp < 0 && h.level > 1) { h.level--; h.xp += xpNeed(h.level); }
+  if (h.xp < 0) h.xp = 0;
+  h.hp = Math.min(h.hp, maxHp());
+}
+function heal(n){ state.hero.hp = Math.min(maxHp(), state.hero.hp + n); }
+function hurt(n, why, quiet){
+  const h = state.hero;
+  h.hp -= n;
+  if (h.hp <= 0) {
+    const lostGold = Math.floor(h.gold * 0.25);
+    const lostXp = h.xp;
+    h.gold -= lostGold; h.xp = 0; h.hp = maxHp();
+    state.counters.deaths++;
+    coachEvent('death', `Hero died. Lost ${lostGold} gold and ${lostXp} XP`);
+    if (quiet) return { lostGold, lostXp };
+    queueModal(`<div style="text-align:center"><div style="font-size:64px">💀</div><h2>You fell in battle</h2>
+      <p class="muted">${esc(why||'Missed quests drained your HP to zero.')}</p>
+      <p>You lost <b class="gold">${lostGold} gold</b> and <b style="color:#c4b5fd">${lostXp} XP</b> of level progress.<br>Your HP has been restored. Get back up, Warrior.</p>
+      <button class="btn primary" data-act="closeModal">Rise again</button></div>`);
+    return { lostGold, lostXp };
+  }
+  return false;
+}
+
+/* ---------- quests ---------- */
+const isDone = (log,q) => !!log.done[q.id];
+function completeQuest(q, el){
+  const log = todayLog();
+  if (log.done[q.id]) return;
+  const xp = gainXp(q.xp, q.cat);
+  const gold = q.gold || 0;
+  state.hero.gold += gold;
+  state.hero.stats[CATS[q.cat].stat]++;
+  const bossDmg = damageBoss(xp);
+  log.done[q.id] = { at: Date.now(), xp, gold, boss: bossDmg };
+  state.counters.quests++;
+  sfx('ding');
+  if (el) { floaty(el, `+${xp} XP`); burst(el, ['✨','⭐','⚔️']); }
+  checkPerfect();
+  checkAch();
+  coachEvent('quest', `Completed "${q.name}" (+${xp} XP, +${gold} gold)`);
+  save(); render();
+}
+function undoQuest(q){
+  const log = todayLog(); const d = log.done[q.id]; if (!d) return;
+  loseXp(d.xp);
+  state.hero.gold = Math.max(0, state.hero.gold - d.gold);
+  state.hero.stats[CATS[q.cat].stat] = Math.max(0, state.hero.stats[CATS[q.cat].stat]-1);
+  if (state.boss && !state.boss.defeated) state.boss.hp = Math.min(state.boss.maxHp, state.boss.hp + (d.boss||0));
+  state.counters.quests = Math.max(0, state.counters.quests-1);
+  if (d.rest) { delete state.restWeeks[weekKey(dayKey())]; }
+  delete log.done[q.id];
+  save(); render();
+}
+function checkPerfect(){
+  const k = dayKey(), log = getLog(k), qs = activeQuests(k);
+  if (!log.perfectAwarded && qs.length && qs.every(q => isDone(log,q))) {
+    log.perfectAwarded = true;
+    state.counters.perfect++;
+    const xp = gainXp(40, 'focus', true); state.hero.gold += 50; heal(15);
+    queueModal(`<div style="text-align:center"><div style="font-size:64px">💎</div><h2>Perfect Day!</h2>
+      <p>Every quest cleared. <b style="color:#c4b5fd">+${xp} XP</b>, <b class="gold">+50 gold</b>, <b style="color:#fca5a5">+15 HP</b>.</p>
+      <button class="btn gold" data-act="closeModal">Legendary</button></div>`);
+    confetti();
+    coachEvent('perfect', 'Completed every quest today — perfect day');
+  }
+}
+function streakOf(q){
+  const s = state.streaks[q.id] || {cur:0,best:0};
+  const today = isDone(todayLog(), q) ? 1 : 0;
+  return { cur: s.cur + today, best: Math.max(s.best, s.cur + today) };
+}
+
+/* ---------- screen time ---------- */
+function screenInfo(k = dayKey()){
+  const log = getLog(k), p = state.profile;
+  const earnedRaw = p.baseScreen + activeQuests(k).filter(q=>isDone(log,q)).reduce((a,q)=>a+(q.min||0),0) + (log.bonusMin||0);
+  const earned = Math.min(p.screenLimit, earnedRaw);
+  const used = (log.screen.youtube||0) + (log.screen.games||0);
+  return { earned, used, limit:p.screenLimit, left: earned - used, logged: log.screen.logged || used>0, yt:log.screen.youtube||0, games:log.screen.games||0 };
+}
+
+/* ---------- boss ---------- */
+function ensureBoss(){
+  const wk = weekKey(dayKey());
+  if (state.boss && state.boss.week === wk) return null;
+  let note = null;
+  if (state.boss && !state.boss.defeated) {
+    note = `${state.boss.name} escaped with ${state.boss.hp} HP left.`;
+    state.bossHistory.unshift({ week: state.boss.week, name: state.boss.name, won: false });
+    hurt(10, `${state.boss.name} escaped and hit you on the way out.`);
+  }
+  const idx = Math.floor(fromKey(wk).getTime() / (7*864e5)) % BOSSES.length;
+  const b = BOSSES[(idx+BOSSES.length)%BOSSES.length];
+  const mhp = 1000 + state.hero.level*50;
+  state.boss = { week: wk, name: b.name, icon: b.icon, lore: b.lore, hp: mhp, maxHp: mhp, defeated: false };
+  return note;
+}
+function damageBoss(xp){
+  const b = state.boss; if (!b || b.defeated) return 0;
+  const dmg = Math.min(b.hp, xp);
+  b.hp -= dmg;
+  if (b.hp <= 0) {
+    b.defeated = true; b.hp = 0;
+    state.counters.bosses++;
+    state.bossHistory.unshift({ week: b.week, name: b.name, won: true });
+    state.hero.gold += 250;
+    const pool = GEAR.filter(g => !state.owned.includes(g.id) && g.cost <= 1200);
+    let drop = '';
+    if (pool.length) { const g = pool[Math.floor(Math.random()*pool.length)]; state.owned.push(g.id); drop = `<p>Loot drop: <b>${g.icon} ${g.name}</b> <span class="muted">(${g.desc})</span></p>`; }
+    if (!state.owned.includes('t_slayer')) state.owned.push('t_slayer');
+    queueModal(`<div style="text-align:center"><div style="font-size:72px">${b.icon}💥</div><h2>${esc(b.name)} defeated!</h2>
+      <p><b class="gold">+250 gold</b> and the title <b>Bossbreaker</b>.</p>${drop}
+      <button class="btn gold" data-act="closeModal">Claim loot</button></div>`);
+    confetti();
+    coachEvent('boss', `Defeated weekly boss ${b.name}`);
+  }
+  return dmg;
+}
+
+/* ---------- daily rollover (penalties) ---------- */
+function processDays(){
+  const today = dayKey();
+  const reports = [];
+  let d = addDays(state.lastProcessed, 1), n = 0;
+  if (d < state.createdAt) d = state.createdAt;
+  while (d < today) {
+    if (n < 10) reports.push(processDay(d));
+    d = addDays(d, 1); n++;
+  }
+  state.lastProcessed = addDays(today, -1);
+  const escaped = ensureBoss();
+  if (reports.length) {
+    state.pendingReport = { reports: reports.slice(-3), skipped: Math.max(0, n-10), escaped };
+  }
+  save();
+}
+function processDay(k){
+  const log = getLog(k);
+  const qs = activeQuests(k);
+  let dmg = 0; const missed = [];
+  for (const q of qs) {
+    const s = state.streaks[q.id] || (state.streaks[q.id] = {cur:0,best:0});
+    if (isDone(log,q)) { s.cur++; s.best = Math.max(s.best, s.cur); }
+    else {
+      s.cur = 0; missed.push(q.name);
+      dmg += q.xp >= 25 ? 8 : 5;
+      if (state.boss && !state.boss.defeated && state.boss.week === weekKey(k)) state.boss.hp = Math.min(state.boss.maxHp, state.boss.hp + 20);
+    }
+  }
+  // screen time
+  const si = screenInfo(k);
+  const ss = state.streaks._screen || (state.streaks._screen = {cur:0,best:0});
+  let screenNote = '';
+  if (!si.logged) { dmg += 5; ss.cur = 0; screenNote = 'Screen time not logged (−5 HP)'; }
+  else {
+    const over = si.used - si.earned;
+    if (over > 0) { const d2 = Math.ceil(over/15)*4; dmg += d2; screenNote = `${over} min past your earned time (−${d2} HP)`; }
+    if (si.used > si.limit) { dmg += 10; ss.cur = 0; screenNote += ` · Over the ${si.limit} min limit (−10 HP)`; }
+    else if (over <= 0) { ss.cur++; ss.best = Math.max(ss.best, ss.cur); gainXp(20,'focus',true); state.hero.stats.FOCUS++; screenNote = `Stayed under — ${si.used}/${si.earned} min (+20 XP)`; }
+    else { ss.cur++; ss.best = Math.max(ss.best, ss.cur); }
+  }
+  const done = qs.filter(q=>isDone(log,q)).length;
+  const pct = qs.length ? done/qs.length : 1;
+  if (pct >= 0.8) { state.dayStreak.cur++; state.dayStreak.best = Math.max(state.dayStreak.best, state.dayStreak.cur); }
+  else state.dayStreak.cur = 0;
+  // Cap one bad day at 60% of max HP: two bad days in a row kills you, one doesn't.
+  dmg = Math.min(dmg, Math.round(maxHp()*0.6));
+  log.summary = { done, total: qs.length, pct, dmg, missed, screenNote };
+  const died = dmg ? hurt(dmg, '', true) : false;
+  checkAch();
+  return { day: k, done, total: qs.length, dmg, missed, screenNote, died, streak: state.dayStreak.cur };
+}
+function showReport(){
+  const r = state.pendingReport; if (!r) return;
+  state.pendingReport = null; save();
+  const rows = r.reports.map(x => `
+    <div class="card" style="margin:10px 0;text-align:left">
+      <div class="row"><b>${prettyDay(x.day)}</b><span class="spacer"></span><span class="pill">${x.done}/${x.total} quests</span></div>
+      ${x.missed.length ? `<div class="muted" style="font-size:13px;margin-top:6px">Missed: ${x.missed.map(esc).join(', ')}</div>` : `<div style="color:var(--ok);font-size:13px;margin-top:6px">Nothing missed 💪</div>`}
+      ${x.screenNote ? `<div class="muted" style="font-size:13px;margin-top:4px">📺 ${esc(x.screenNote)}</div>` : ''}
+      ${x.dmg ? `<div style="color:#fca5a5;font-weight:700;font-size:13px;margin-top:6px">−${x.dmg} HP</div>` : ''}
+      ${x.died ? `<div style="color:#fca5a5;font-weight:800;font-size:13px;margin-top:4px">💀 You fell in battle: −${x.died.lostGold} gold, −${x.died.lostXp} XP. HP restored.</div>` : ''}
+    </div>`).join('');
+  const streakLine = state.dayStreak.cur ? `🔥 Day streak: <b>${state.dayStreak.cur}</b>` : `🔥 Day streak reset. Hit 80%+ of your quests today to start a new one.`;
+  showModal(`<h2>☀️ New day, Warrior</h2>
+    <p class="muted" style="margin-top:0">Here's how the last ${r.reports.length > 1 ? r.reports.length+' days' : 'day'} went.</p>
+    ${r.skipped ? `<p class="muted">(${r.skipped} older days were also counted.)</p>` : ''}
+    ${rows}
+    ${r.escaped ? `<p>👹 ${esc(r.escaped)} A new boss has appeared.</p>` : ''}
+    <p>${streakLine}</p>
+    <button class="btn primary" data-act="closeModal">Start today's quests</button>`);
+}
+
+/* ---------- workouts ---------- */
+function logWorkout(w){
+  const log = todayLog();
+  w.at = Date.now();
+  log.workouts.push(w);
+  state.counters.workouts++;
+  let msg = '';
+  if (w.type === 'lift' && w.weight && w.reps) {
+    const k = w.exercise.trim().toLowerCase();
+    const e1rm = Math.round(w.weight * (1 + w.reps/30));
+    const prev = state.prs[k];
+    if (!prev || e1rm > prev.e1rm) {
+      state.prs[k] = { name: w.exercise.trim(), weight: w.weight, reps: w.reps, e1rm, day: dayKey() };
+      if (prev) { state.counters.prs++; const xp = gainXp(25,'fitness'); msg = `🏆 NEW PR on ${w.exercise}! est. 1RM ${e1rm} (was ${prev.e1rm}) +${xp} XP`; coachEvent('pr', `New PR on ${w.exercise}: ${w.weight}x${w.reps} (est 1RM ${e1rm}, was ${prev.e1rm})`); confetti(); }
+    }
+  }
+  if (w.type === 'run' && w.miles) state.counters.miles = Math.round((state.counters.miles + w.miles)*100)/100;
+  const q = state.quests.find(q=>q.id==='workout' && !q.archived);
+  if (q && !log.done[q.id] && q.days.includes(dow(dayKey()))) completeQuest(q);
+  else { coachEvent('workout', `Logged workout: ${describeWorkout(w)}`); }
+  checkAch(); save(); render();
+  toast(msg || '💪 Workout logged', msg ? 'good' : '');
+}
+function describeWorkout(w){
+  if (w.type==='lift') return `${w.exercise} ${w.sets||1}×${w.reps||'?'} @ ${w.weight||0} lb`;
+  if (w.type==='run') return `Run ${w.miles||0} mi${w.minutes?` in ${w.minutes} min`:''}`;
+  return `${w.exercise||'Home workout'}${w.minutes?` · ${w.minutes} min`:''}`;
+}
+
+/* ---------- achievements ---------- */
+function checkAch(){
+  for (const a of ACH) {
+    if (!state.achievements[a.id] && a.test(state)) {
+      state.achievements[a.id] = dayKey();
+      state.hero.gold += a.gold;
+      toast(`🏅 Achievement: ${a.name}${a.gold?` (+${a.gold} gold)`:''}`, 'good');
+    }
+  }
+}
+
+/* =========================================================
+   AI COACH
+   ========================================================= */
+const COACH = { name: 'Master Ironhart', face: '🧔🏻‍♂️' };
+function coachSystem(){
+  const p = state.profile;
+  return `You are ${COACH.name}, the guild trainer inside "Ascend", an RPG habit-tracker game built for exactly one person: ${p.name}, a student who plays as a ${CLASSES[p.cls].name}.
+
+What ${p.name} is working on:
+- School: homework before any screens, studying/reviewing 20 min, reading 20 min, planning tomorrow.
+- Fitness: lifting, running and home workouts, 6-7 days a week. Health: water, protein, stretching, no junk food.
+- Screen time: keep YouTube + video games under ${p.screenLimit} min/day. Screen time is EARNED by finishing quests.
+- Business: building/coding projects 30 min and learning skills.
+- Sleep: lights out by ${fmtTime(p.bedtime)}, wakes around ${fmtTime(p.wake)}.
+- Known weak spot: starts strong, then loses motivation after a week or two. Your job is to keep it feeling like a game, celebrate momentum, and make the next step tiny and obvious when energy dips.
+
+Style rules:
+- Talk like an RPG mentor (quests, XP, gold, the weekly boss, gear) but stay real, specific and modern. Use their actual numbers from the status block.
+- Keep it short: 1-3 sentences unless they ask for a plan or more detail. At most one emoji.
+- Tough love but always on their side. Never shame. When they're struggling, give one concrete tiny action they can do in the next 10 minutes.
+- Don't invent stats that aren't in the status. Don't repeat the same opener every time.
+- Safety: no extreme dieting, cutting, or dangerous training advice. For pain or injury, tell them to rest and talk to a parent, coach, or doctor.`;
+}
+function coachStatus(){
+  const k = dayKey(), log = getLog(k), h = state.hero, qs = activeQuests(k), si = screenInfo(k);
+  const done = qs.filter(q=>isDone(log,q)), left = qs.filter(q=>!isDone(log,q));
+  const now = new Date();
+  const recentW = Object.entries(state.log).sort().slice(-7).flatMap(([d,l])=>l.workouts.map(w=>`${d}: ${describeWorkout(w)}`)).slice(-5);
+  const prs = Object.values(state.prs).slice(-5).map(p=>`${p.name} ${p.weight}x${p.reps}`);
+  const last7 = [...Array(7)].map((_,i)=>addDays(k,-7+i)).map(d=>state.log[d]?.summary).filter(Boolean);
+  return `STATUS (${now.toLocaleString(undefined,{weekday:'long',hour:'numeric',minute:'2-digit'})}):
+Hero: Level ${h.level} ${rankOf(h.level)} ${CLASSES[state.profile.cls].name}${state.equipped.title?` "${titleName()}"`:''}, HP ${h.hp}/${maxHp()}, XP ${h.xp}/${xpNeed(h.level)}, gold ${h.gold}, total XP ${h.totalXp}, deaths ${state.counters.deaths}.
+Stats: ${Object.entries(h.stats).map(([a,b])=>a+' '+b).join(', ')}.
+Day streak: ${state.dayStreak.cur} (best ${state.dayStreak.best}).
+Today: ${done.length}/${qs.length} quests done. Done: ${done.map(q=>q.name).join('; ')||'none'}. Remaining: ${left.map(q=>`${q.name} [${q.slot}]`).join('; ')||'none'}.
+Screen time today: used ${si.used} min (YouTube ${si.yt}, games ${si.games}), earned ${si.earned}, daily limit ${si.limit}.
+Weekly boss: ${state.boss?`${state.boss.name} ${state.boss.defeated?'DEFEATED':`HP ${state.boss.hp}/${state.boss.maxHp}`}`:'none'}.
+Last 7 days completion: ${last7.map(s=>Math.round(s.pct*100)+'%').join(', ')||'no history yet'}.
+Recent workouts: ${recentW.join('; ')||'none'}. PRs: ${prs.join('; ')||'none'}.
+${log.journal?`Tonight's journal: "${log.journal.slice(0,400)}"`:''}`;
+}
+async function askAI(messages, maxTokens){
+  const c = state.coach, prov = c.provider, key = (c.keys[prov]||'').trim();
+  if (prov === 'none' || !key) throw new Error('no-key');
+  const system = coachSystem() + '\n\n' + coachStatus();
+  if (prov === 'gemini') {
+    const model = c.models.gemini || 'gemini-flash-latest';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+      }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(data.error?.message || `Gemini error ${res.status}`);
+    const text = (data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
+    if (!text) throw new Error('Gemini returned no text (it may have been blocked).');
+    return text;
+  }
+  if (prov === 'anthropic') {
+    const model = c.models.anthropic || 'claude-opus-5-5';
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'server-side-fallback-2026-07-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens || 2048,
+        output_config: { effort: 'low' },
+        fallbacks: 'default',
+        system,
+        messages,
+      }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(data.error?.message || `Claude error ${res.status}`);
+    if (data.stop_reason === 'refusal') throw new Error('Claude declined that one. Try rephrasing.');
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    if (!text) throw new Error('Claude returned no text.');
+    return text;
+  }
+  throw new Error('no-key');
+}
+const hasAI = () => state.coach.provider !== 'none' && !!(state.coach.keys[state.coach.provider]||'').trim();
+
+const TEMPLATES = {
+  open: [
+    s=>`${greet()}, ${s.name}. ${s.left} quests on the board today. First one's the hardest, so start there.`,
+    s=>`Day streak: ${s.streak}. ${s.streak>=5?"Don't you dare break it now.":'Build it one day at a time.'} Your first quest is waiting.`,
+    s=>`${s.boss}. Every quest you finish is a hit on it. Let's go.`,
+  ],
+  quest: [
+    s=>`Clean hit. ${s.done}/${s.total} down. ${s.left?`${s.left} to go.`:'Board cleared!'}`,
+    s=>`That's how a ${s.cls} moves. Next up: ${s.next||'rest, you earned it'}.`,
+    s=>`+XP. You're ${s.toNext} XP from level ${s.level+1}.`,
+    s=>`Momentum is a stat too. Keep stacking. ${s.next?`Hit "${s.next}" next.`:''}`,
+  ],
+  levelup: [ s=>`LEVEL ${s.level}. ${s.rank} now. The guild sees you.`, s=>`Level ${s.level}! Full HP restored. Don't waste it.` ],
+  death: [ s=>`You fell. Happens to every warrior once. What matters is the next quest, so do the smallest one right now.` ],
+  boss: [ s=>`The boss is down. Next week's is tougher. So are you.` ],
+  perfect: [ s=>`Perfect day. That's what week two looks like when you DON'T quit.` ],
+  pr: [ s=>`New PR. Write that down. Strength is earned in reps nobody sees.` ],
+  workout: [ s=>`Workout logged. Your STR stat thanks you.` ],
+  journal: [ s=>`Good reflection. Sleep by ${fmtTime(state.profile.bedtime)} and tomorrow's you starts with full HP.` ],
+  slump: [ s=>`Low energy? Shrink it. Do 2 minutes of the easiest quest. Starting is the whole battle.` ],
+};
+function templateLine(type){
+  const k = dayKey(), log = getLog(k), qs = activeQuests(k), h = state.hero;
+  const left = qs.filter(q=>!isDone(log,q));
+  const s = { name: state.profile.name, left: left.length, done: qs.length-left.length, total: qs.length, streak: state.dayStreak.cur,
+    boss: state.boss ? (state.boss.defeated ? `${state.boss.name} is already defeated` : `${state.boss.name} has ${state.boss.hp} HP`) : 'No boss yet',
+    next: left[0]?.name, cls: CLASSES[state.profile.cls].name, level: h.level, rank: rankOf(h.level), toNext: xpNeed(h.level)-h.xp };
+  const arr = TEMPLATES[type] || TEMPLATES.quest;
+  return arr[Math.floor(Math.random()*arr.length)](s);
+}
+let coachTimer = null, coachEvents = [], lastAICall = 0, coachBusy = false;
+function coachEvent(type, detail){
+  coachEvents.push({type, detail});
+  clearTimeout(coachTimer);
+  coachTimer = setTimeout(runCoach, 1800);
+}
+async function runCoach(){
+  const evs = coachEvents.splice(0);
+  if (!evs.length) return;
+  const priority = ['death','boss','levelup','perfect','pr','journal','workout','quest','open'];
+  const main = evs.slice().sort((a,b)=>priority.indexOf(a.type)-priority.indexOf(b.type))[0];
+  let line;
+  const important = ['death','boss','levelup','perfect','pr','journal','open'].includes(main.type);
+  if (hasAI() && !coachBusy && (important || Date.now()-lastAICall > 20000)) {
+    coachBusy = true; lastAICall = Date.now();
+    setCoachLine(null);
+    try {
+      line = await askAI([{ role:'user', content: `[Game event — not typed by ${state.profile.name}] ${evs.map(e=>e.detail).join(' | ')}\nReact with ONE short coach line (max 2 sentences) that fits this moment and their status. Point at the next best quest if it helps.` }], 1024);
+    } catch(e) { line = templateLine(main.type); if (e.message !== 'no-key') console.warn('Coach AI:', e.message); }
+    coachBusy = false;
+  } else line = templateLine(main.type);
+  setCoachLine(line, main.type);
+}
+function setCoachLine(text, type){
+  if (text === null) { state.coach.line = null; renderCoachBubble(); return; }
+  state.coach.line = text;
+  state.coach.feed.unshift({ t: Date.now(), text, type });
+  state.coach.feed = state.coach.feed.slice(0, 40);
+  save(); renderCoachBubble();
+}
+function renderCoachBubble(){
+  const el = document.getElementById('coachMsg'); if (!el) return;
+  if (state.coach.line === null) { el.innerHTML = '<span class="typing">Thinking</span>'; return; }
+  el.textContent = state.coach.line || templateLine('open');
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTime = t => { const [h,m] = (t||'0:0').split(':').map(Number); return `${(h%12)||12}:${pad(m)} ${h<12?'AM':'PM'}`; };
+const greet = () => { const h = new Date().getHours(); return h<12?'Morning':h<17?'Afternoon':'Evening'; };
+const titleName = () => (TITLES.find(t=>t.id===state.equipped.title)||{}).name;
+function currentSlot(){ const h = new Date().getHours(); return h<3?'night':h<8?'morning':h<15?'anytime':h<20?'afterschool':'night'; }
+
+let view = 'today';
+const NAV = [
+  ['today','Quests','🗡️'],['train','Train','🏋️'],['screen','Screen','📺'],['boss','Boss','👹'],
+  ['shop','Shop','💰'],['stats','Stats','📊'],['coach','Coach','🧔🏻‍♂️'],['settings','Settings','⚙️'],
+];
+function renderNav(){
+  const si = screenInfo();
+  document.getElementById('nav').innerHTML = `<div class="brand">ASCEND</div>` + NAV.map(([id,l,i]) =>
+    `<button class="nav-btn ${view===id?'active':''}" data-act="nav" data-v="${id}"><span class="ico">${i}</span>${l}${id==='screen'&&si.used>si.earned?'<span class="dot"></span>':''}</button>`).join('');
+}
+function renderHero(){
+  const h = state.hero, mhp = maxHp(), cls = CLASSES[state.profile.cls];
+  const si = screenInfo();
+  const gear = equippedGear().map(g=>g.icon).join(' ');
+  document.getElementById('hero').innerHTML = `
+  <section class="hero">
+    <div class="avatar">${cls.icon}<span class="lvl">${h.level}</span></div>
+    <div style="min-width:0">
+      <div class="hero-name">${esc(state.profile.name)}${state.equipped.title?`<span class="title">${esc(titleName())}</span>`:''}</div>
+      <div class="hero-sub">Level ${h.level} ${cls.name} · ${rankOf(h.level)} ${gear?`· ${gear}`:''}</div>
+      <div class="bars">
+        <div class="bar"><span class="lab">HP</span><div class="track"><div class="fill hp" style="width:${Math.max(0,h.hp)/mhp*100}%"></div></div><span class="val">${h.hp}/${mhp}</span></div>
+        <div class="bar"><span class="lab">XP</span><div class="track"><div class="fill xp" style="width:${h.xp/xpNeed(h.level)*100}%"></div></div><span class="val">${h.xp}/${xpNeed(h.level)}</span></div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="chip gold">💰 ${h.gold.toLocaleString()} <small>gold</small></div>
+      <div class="chip">🔥 ${state.dayStreak.cur} <small>day streak</small></div>
+      <div class="chip" style="color:${si.left<0?'var(--hp)':'#7dd3fc'}">📺 ${Math.max(0,si.left)}m <small>screen left</small></div>
+    </div>
+  </section>`;
+}
+function render(){
+  renderNav(); renderHero();
+  const v = document.getElementById('view');
+  v.innerHTML = (VIEWS[view] || VIEWS.today)();
+  if (view==='today') renderCoachBubble();
+  if (view==='coach') { const c = document.getElementById('chat'); if (c) c.scrollTop = c.scrollHeight; }
+}
+
+/* ---------- views ---------- */
+const VIEWS = {};
+VIEWS.today = () => {
+  const k = dayKey(), log = getLog(k), qs = activeQuests(k), now = currentSlot();
+  const done = qs.filter(q=>isDone(log,q)).length;
+  const pct = qs.length ? Math.round(done/qs.length*100) : 0;
+  let html = `
+  <div class="coach"><div class="face">${COACH.face}</div><div style="flex:1"><div class="who">${COACH.name}</div><div class="msg" id="coachMsg"></div></div>
+    <button class="btn sm" data-act="nav" data-v="coach">Talk</button></div>
+  <div class="section-title"><h2>${prettyDay(k)}</h2><span class="sub">${done}/${qs.length} quests · ${pct}%</span>
+    <span class="right">${pct>=80?'🔥 Streak secured':`${Math.max(0,Math.ceil(qs.length*0.8)-done)} more to keep the streak`}</span></div>
+  <div class="track" style="height:8px;margin-bottom:6px"><div class="fill xp" style="width:${pct}%;background:linear-gradient(90deg,#16a34a,#22c55e)"></div></div>`;
+  for (const s of SLOTS) {
+    const list = qs.filter(q=>q.slot===s.id);
+    if (!list.length) continue;
+    const sd = list.filter(q=>isDone(log,q)).length;
+    html += `<div class="section-title"><h2>${s.icon} ${s.label}</h2>${now===s.id?'<span class="now-badge">NOW</span>':''}<span class="sub">${s.sub}</span><span class="right">${sd}/${list.length}</span></div>
+      <div class="quests">${list.map(q=>questCard(q,log)).join('')}</div>`;
+  }
+  // night journal
+  html += `<div class="section-title"><h2>📜 Night Reflection</h2><span class="sub">The coach reads this</span></div>
+    <div class="card"><textarea id="journal" placeholder="What went well today? What's the one thing to fix tomorrow?">${esc(log.journal)}</textarea>
+    <div class="row" style="margin-top:10px"><span class="muted" style="font-size:12px">${log.journal?'Saved ✓':''}</span><span class="spacer"></span><button class="btn primary" data-act="saveJournal">Save reflection</button></div></div>`;
+  return html;
+};
+function questCard(q, log){
+  const done = isDone(log,q), st = streakOf(q), c = CATS[q.cat];
+  const xp = Math.round(q.xp*xpMult(q.cat));
+  const meta = `<span class="x">+${xp} XP</span><span class="g">+${q.gold} 🪙</span>${q.min?`<span class="m">+${q.min}m 📺</span>`:''}${st.cur?`<span class="s">🔥${st.cur}</span>`:''}${q.note&&!done?`<span>${esc(q.note)}</span>`:''}${log.done[q.id]?.rest?'<span>Rest day</span>':''}`;
+  if (q.target) {
+    const n = log.counts[q.id]||0;
+    return `<div class="quest ${done?'done':''}" style="--c:${c.color}"><div class="qi">${q.icon}</div>
+      <div class="qbody"><div class="qname">${esc(q.name)}</div><div class="qmeta">${meta}</div>
+      <div class="pips">${[...Array(q.target)].map((_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div></div>
+      <div class="counter"><button data-act="count" data-id="${q.id}" data-d="-1">−</button><span class="n">${n}/${q.target}</span><button data-act="count" data-id="${q.id}" data-d="1">+</button></div></div>`;
+  }
+  return `<div class="quest ${done?'done':''}" style="--c:${c.color}"><div class="qi">${q.icon}</div>
+    <div class="qbody"><div class="qname">${esc(q.name)}</div><div class="qmeta">${meta}</div></div>
+    <button class="check" data-act="toggle" data-id="${q.id}" aria-label="${done?'Undo':'Complete'} ${esc(q.name)}">${done?'✓':''}</button></div>`;
+}
+
+VIEWS.train = () => {
+  const log = todayLog(), wk = weekKey(dayKey());
+  const restUsed = state.restWeeks[wk];
+  const hist = Object.entries(state.log).sort((a,b)=>b[0].localeCompare(a[0])).flatMap(([d,l])=>l.workouts.map(w=>({d,w}))).slice(0,25);
+  const prs = Object.values(state.prs).sort((a,b)=>b.e1rm-a.e1rm);
+  const wq = state.quests.find(q=>q.id==='workout');
+  return `
+  <div class="section-title"><h2>🏋️ Log a Workout</h2><span class="sub">Auto-completes today's Workout quest · PRs give bonus XP</span></div>
+  <div class="card">
+    <div class="row" style="margin-bottom:12px">
+      ${['lift','run','home'].map(t=>`<button class="btn ${trainType===t?'primary':''}" data-act="trainType" data-t="${t}">${{lift:'🏋️ Lift',run:'🏃 Run',home:'🏠 Home'}[t]}</button>`).join('')}
+    </div>
+    ${trainType==='lift'?`
+      <div class="grid3 lift-grid">
+        <label class="f">Exercise<input id="w_ex" list="exlist" placeholder="Bench press"></label>
+        <label class="f">Weight (lb)<input id="w_wt" type="number" inputmode="decimal" placeholder="135"></label>
+        <label class="f">Reps<input id="w_reps" type="number" inputmode="numeric" placeholder="8"></label>
+        <label class="f">Sets<input id="w_sets" type="number" inputmode="numeric" placeholder="3"></label>
+      </div>
+      <datalist id="exlist">${['Bench press','Squat','Deadlift','Overhead press','Barbell row','Pull-ups','Incline dumbbell press','Lat pulldown','Leg press','Curls','Dips','RDL'].concat(Object.values(state.prs).map(p=>p.name)).filter((v,i,a)=>a.indexOf(v)===i).map(e=>`<option value="${esc(e)}">`).join('')}</datalist>`
+    : trainType==='run' ? `
+      <div class="grid2"><label class="f">Miles<input id="w_mi" type="number" inputmode="decimal" step="0.1" placeholder="2.0"></label>
+      <label class="f">Minutes<input id="w_min" type="number" inputmode="numeric" placeholder="18"></label></div>`
+    : `<div class="grid2"><label class="f">What did you do?<input id="w_ex" placeholder="100 pushups, core circuit"></label>
+      <label class="f">Minutes<input id="w_min" type="number" inputmode="numeric" placeholder="20"></label></div>`}
+    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="logWorkout">Log it</button><span class="spacer"></span>
+      ${wq && !log.done.workout ? `<button class="btn sm" data-act="restDay" ${restUsed?'disabled':''} title="1 free rest day per week">${restUsed?'Rest day used this week':'😴 Take rest day (1/week)'}</button>`:''}</div>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><h3>🏆 Personal Records</h3>
+      ${prs.length?`<table><tr><th>Lift</th><th>Best set</th><th>Est. 1RM</th></tr>${prs.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.weight} × ${p.reps}</td><td><b>${p.e1rm}</b></td></tr>`).join('')}</table>`:'<p class="muted">Log a lift to start tracking PRs.</p>'}
+    </div>
+    <div class="card"><h3>📜 Recent Workouts</h3>
+      ${hist.length?`<table>${hist.map(({d,w})=>`<tr><td class="muted" style="white-space:nowrap">${prettyDay(d)}</td><td>${esc(describeWorkout(w))}</td></tr>`).join('')}</table>`:'<p class="muted">No workouts yet. Today is a good day.</p>'}
+      <p class="muted" style="font-size:12px;margin-top:10px">Total: ${state.counters.workouts} workouts · ${state.counters.miles} miles run</p>
+    </div>
+  </div>`;
+};
+let trainType = 'lift';
+
+VIEWS.screen = () => {
+  const si = screenInfo(), log = todayLog();
+  const usedPct = Math.min(100, si.used/si.limit*100), earnPct = si.earned/si.limit*100;
+  const days = [...Array(7)].map((_,i)=>addDays(dayKey(),i-6));
+  const maxBar = Math.max(si.limit, ...days.map(d=>screenInfo(d).used));
+  return `
+  <div class="section-title"><h2>📺 Screen Time</h2><span class="sub">YouTube + games · earn minutes by finishing quests</span></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="row"><div><div class="muted" style="font-size:12px;font-weight:700">USED TODAY</div><div class="big" style="color:${si.used>si.earned?'var(--hp)':'var(--text)'}">${si.used}<span class="muted" style="font-size:16px"> min</span></div></div>
+        <span class="spacer"></span>
+        <div style="text-align:right"><div class="muted" style="font-size:12px;font-weight:700">EARNED</div><div class="big gold">${si.earned}<span class="muted" style="font-size:16px"> / ${si.limit}</span></div></div></div>
+      <div class="meter" style="margin:14px 0 8px"><div class="used ${si.used>si.earned?'over':''}" style="width:${usedPct}%"></div><div class="earn" style="left:calc(${earnPct}% - 1px)"></div></div>
+      <p class="muted" style="font-size:13px;margin:0">${si.left>=0?`<b style="color:#7dd3fc">${si.left} min</b> left guilt-free.`:`<b style="color:#fca5a5">${-si.left} min over</b> what you've earned. Overtime costs 4 HP per 15 min tonight.`}
+      Base ${state.profile.baseScreen} min + quest minutes, max ${si.limit}.</p>
+    </div>
+    <div class="card"><h3>Log time</h3>
+      ${[['youtube','▶️ YouTube'],['games','🎮 Games']].map(([k,l])=>`
+        <div class="row" style="margin-bottom:10px"><b style="width:100px">${l}</b><span class="pill">${log.screen[k]||0} min</span><span class="spacer"></span>
+        ${[-15,15,30,60].map(n=>`<button class="btn sm" data-act="screen" data-k="${k}" data-n="${n}">${n>0?'+':''}${n}</button>`).join('')}</div>`).join('')}
+      <div class="row"><button class="btn sm" data-act="screenZero" ${si.logged?'disabled':''}>${si.logged?'✓ Logged for today':'I used 0 min today'}</button>
+      <span class="spacer"></span><button class="btn sm gold" data-act="buyScreen" ${state.hero.gold<120?'disabled':''}>Buy +15 min (120 🪙)</button></div>
+      <p class="muted" style="font-size:12px;margin-bottom:0">Not logging anything = −5 HP at the end of the day. Staying under = +20 XP.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px"><h3>Last 7 days</h3>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:160px">
+      ${days.map(d=>{const x=screenInfo(d);const h=Math.max(2,x.used/maxBar*130);return `<div style="text-align:center;font-size:11px"><div class="muted" style="margin-bottom:4px">${x.used}</div><div style="height:${h}px;border-radius:6px 6px 2px 2px;background:${x.used>x.limit?'var(--hp)':x.used>x.earned?'var(--warn)':'#38bdf8'}"></div><div class="muted" style="margin-top:6px">${fromKey(d).toLocaleDateString(undefined,{weekday:'short'})}</div></div>`}).join('')}
+    </div>
+    <p class="muted" style="font-size:12px">Under-limit streak: 🔥 ${(state.streaks._screen||{}).cur||0} (best ${(state.streaks._screen||{}).best||0})</p>
+  </div>`;
+};
+
+VIEWS.boss = () => {
+  const b = state.boss; if (!b) return '';
+  const end = addDays(b.week, 7);
+  const daysLeft = Math.max(0, Math.round((fromKey(end)-fromKey(dayKey()))/864e5));
+  return `
+  <div class="card boss" id="bossCard">
+    <div class="bicon">${b.defeated?'💀':b.icon}</div>
+    <h2 class="serif" style="font-size:26px;margin-top:8px">${esc(b.name)}</h2>
+    <p class="muted" style="margin:6px 0 0">${esc(b.lore)}</p>
+    <div class="bhp"><div class="track" style="height:16px"><div class="fill hp" style="width:${b.hp/b.maxHp*100}%"></div></div></div>
+    <div style="font-weight:800">${b.defeated?'DEFEATED 🏆':`${b.hp.toLocaleString()} / ${b.maxHp.toLocaleString()} HP`}</div>
+    <p class="muted" style="font-size:13px">${b.defeated?'Rest up. A new boss arrives Monday.':`${daysLeft} day${daysLeft===1?'':'s'} left · every XP you earn = 1 damage · every missed quest heals it 20`}</p>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><h3>⚔️ How to fight</h3>
+      <p class="muted" style="font-size:14px;margin:0;line-height:1.6">Finish quests to deal damage equal to the XP you earn. Missed quests heal the boss. Beat it before Sunday night for <b class="gold">250 gold</b>, a random <b>gear drop</b>, and the <b>Bossbreaker</b> title. If it escapes, it hits you for 10 HP on the way out.</p></div>
+    <div class="card"><h3>📜 Boss history</h3>
+      ${state.bossHistory.length?`<table>${state.bossHistory.slice(0,10).map(h=>`<tr><td>${prettyDay(h.week)}</td><td>${esc(h.name)}</td><td>${h.won?'<b style="color:var(--ok)">Slain</b>':'<span style="color:#fca5a5">Escaped</span>'}</td></tr>`).join('')}</table>`:'<p class="muted">Your first boss fight is underway.</p>'}</div>
+  </div>`;
+};
+
+VIEWS.shop = () => {
+  const g = state.hero.gold;
+  const gearCard = it => {
+    const own = state.owned.includes(it.id), eq = state.equipped[it.slot]===it.id;
+    return `<div class="item ${own?'owned':''} ${eq?'eq':''}"><div class="ii">${it.icon}</div><div class="in">${esc(it.name)}</div><div class="id">${esc(it.desc)} · ${it.slot}</div>
+      ${own?`<button class="btn sm ${eq?'':'primary'}" data-act="equip" data-id="${it.id}">${eq?'Unequip':'Equip'}</button>`:`<button class="btn sm gold" data-act="buyGear" data-id="${it.id}" ${g<it.cost?'disabled':''}>${it.cost} 🪙</button>`}</div>`;
+  };
+  return `
+  <div class="section-title"><h2>🎁 Real-Life Rewards</h2><span class="sub">You set these. Redeem honestly.</span><span class="right gold">💰 ${g.toLocaleString()}</span></div>
+  <div class="items">${state.rewards.map(r=>`<div class="item"><div class="ii">${r.icon||'🎁'}</div><div class="in">${esc(r.name)}</div><div class="id"></div>
+    <button class="btn sm gold" data-act="redeem" data-id="${r.id}" ${g<r.cost?'disabled':''}>Redeem · ${r.cost} 🪙</button></div>`).join('')}</div>
+  <p class="muted" style="font-size:12px">Edit these in Settings.</p>
+  <div class="section-title"><h2>🧪 Potions</h2></div>
+  <div class="items">
+    <div class="item"><div class="ii">❤️‍🩹</div><div class="in">Health Potion</div><div class="id">Restore 25 HP</div><button class="btn sm gold" data-act="potion" ${g<100||state.hero.hp>=maxHp()?'disabled':''}>100 🪙</button></div>
+    <div class="item"><div class="ii">📜</div><div class="in">Screen Scroll</div><div class="id">+15 min screen time today (still capped at your limit)</div><button class="btn sm gold" data-act="buyScreen" ${g<120?'disabled':''}>120 🪙</button></div>
+  </div>
+  <div class="section-title"><h2>⚔️ Weapons</h2></div><div class="items">${GEAR.filter(x=>x.slot==='weapon').map(gearCard).join('')}</div>
+  <div class="section-title"><h2>🛡️ Armor & Helms</h2></div><div class="items">${GEAR.filter(x=>x.slot!=='weapon').map(gearCard).join('')}</div>
+  <div class="section-title"><h2>🏷️ Titles</h2><span class="sub">Shown next to your name</span></div>
+  <div class="items">${TITLES.map(t=>{const own=state.owned.includes(t.id),eq=state.equipped.title===t.id;return `<div class="item ${own?'owned':''} ${eq?'eq':''}"><div class="in">"${esc(t.name)}"</div><div class="id">${t.unlock?'Unlocked by defeating a boss':''}</div>
+    ${own?`<button class="btn sm ${eq?'':'primary'}" data-act="equipTitle" data-id="${t.id}">${eq?'Remove':'Wear'}</button>`:t.unlock?'<button class="btn sm" disabled>🔒 Locked</button>':`<button class="btn sm gold" data-act="buyTitle" data-id="${t.id}" ${g<t.cost?'disabled':''}>${t.cost} 🪙</button>`}</div>`}).join('')}</div>
+  ${state.redeemed.length?`<div class="section-title"><h2>🧾 Redeemed</h2></div><div class="card"><table>${state.redeemed.slice(0,15).map(r=>`<tr><td>${prettyDay(r.day)}</td><td>${esc(r.name)}</td><td class="gold">−${r.cost}</td></tr>`).join('')}</table></div>`:''}`;
+};
+
+VIEWS.stats = () => {
+  const today = dayKey();
+  const start = addDays(weekKey(today), -11*7);
+  const cells = [];
+  for (let d = start; d <= today; d = addDays(d,1)) {
+    let pct = null;
+    if (d === today) { const qs = activeQuests(d), l = getLog(d); pct = qs.length ? qs.filter(q=>isDone(l,q)).length/qs.length : 0; }
+    else if (state.log[d]?.summary) pct = state.log[d].summary.pct;
+    const col = pct===null ? '#1f1b2a' : pct>=1 ? '#22c55e' : pct>=.8 ? '#16a34a' : pct>=.5 ? '#15803d99' : pct>0 ? '#14532d' : '#3b1d24';
+    cells.push(`<i style="background:${col}" title="${prettyDay(d)}${pct!==null?': '+Math.round(pct*100)+'%':''}"></i>`);
+  }
+  const h = state.hero, maxStat = Math.max(10, ...Object.values(h.stats));
+  const statColors = {STR:'var(--str)',INT:'var(--int)',CRAFT:'var(--craft)',VIT:'var(--vit)',FOCUS:'var(--focus)'};
+  const qrows = state.quests.filter(q=>!q.archived).map(q=>({q,s:streakOf(q)})).sort((a,b)=>b.s.cur-a.s.cur);
+  return `
+  <div class="section-title"><h2>📅 12-Week Battle Log</h2><span class="sub">Daily quest completion</span></div>
+  <div class="card"><div class="heat">${cells.join('')}</div>
+    <div class="row muted" style="font-size:11px;margin-top:8px">Less <i style="width:12px;height:12px;border-radius:3px;background:#3b1d24;display:inline-block"></i><i style="width:12px;height:12px;border-radius:3px;background:#14532d;display:inline-block"></i><i style="width:12px;height:12px;border-radius:3px;background:#16a34a;display:inline-block"></i><i style="width:12px;height:12px;border-radius:3px;background:#22c55e;display:inline-block"></i> More</div></div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><h3>🧬 Attributes</h3>
+      ${Object.entries(h.stats).map(([k,v])=>`<div class="attr"><span style="color:${statColors[k]}">${k}</span><div class="track"><div class="fill" style="width:${v/maxStat*100}%;background:${statColors[k]}"></div></div><span style="text-align:right">${v}</span></div>`).join('')}
+      <p class="muted" style="font-size:12px">STR fitness · INT school · CRAFT business · VIT health · FOCUS screen & discipline</p></div>
+    <div class="card"><h3>📈 Career</h3>
+      <div class="grid2" style="gap:10px">
+        ${[['Total XP',h.totalXp.toLocaleString()],['Best streak',state.dayStreak.best+' days'],['Quests done',state.counters.quests],['Perfect days',state.counters.perfect],['Workouts',state.counters.workouts],['Bosses slain',state.counters.bosses],['Miles run',state.counters.miles],['Deaths',state.counters.deaths]].map(([a,b])=>`<div><div class="muted" style="font-size:11px;font-weight:700">${a.toUpperCase()}</div><div style="font-size:20px;font-weight:800">${b}</div></div>`).join('')}
+      </div></div>
+  </div>
+  <div class="section-title"><h2>🔥 Quest Streaks</h2></div>
+  <div class="card"><table><tr><th>Quest</th><th>Current</th><th>Best</th></tr>${qrows.map(({q,s})=>`<tr><td>${q.icon} ${esc(q.name)}</td><td><b>${s.cur}</b></td><td class="muted">${s.best}</td></tr>`).join('')}</table></div>
+  <div class="section-title"><h2>🏅 Achievements</h2><span class="sub">${Object.keys(state.achievements).length}/${ACH.length}</span></div>
+  <div class="items">${ACH.map(a=>`<div class="ach ${state.achievements[a.id]?'got':''}"><div class="ai">${a.icon}</div><div><div style="font-weight:800;font-size:14px">${a.name}</div><div class="muted" style="font-size:12px">${a.desc}${a.gold?` · ${a.gold} 🪙`:''}</div></div></div>`).join('')}</div>`;
+};
+
+VIEWS.coach = () => {
+  const ai = hasAI();
+  return `
+  <div class="section-title"><h2>${COACH.face} ${COACH.name}</h2><span class="sub">${ai?`Powered by ${state.coach.provider==='gemini'?'Google Gemini':'Claude'} · knows your stats`:'Basic mode. Add an API key in Settings for a real AI coach.'}</span></div>
+  <div class="grid2 coach-grid">
+    <div class="card">
+      <div class="chat" id="chat">
+        ${state.coach.chat.length?state.coach.chat.map(m=>`<div class="bub ${m.role==='user'?'me':'ai'}">${esc(m.content)}</div>`).join(''):`<div class="bub ai">${ai?`What's on your mind, ${esc(state.profile.name)}? Ask me to plan your afternoon, build a workout, or talk you out of a YouTube spiral.`:'Add a free Gemini API key in Settings → AI Coach and I can actually talk back, using your real stats.'}</div>`}
+        ${chatBusy?'<div class="bub ai"><span class="typing">Thinking</span></div>':''}
+      </div>
+      <div class="row" style="margin-top:12px;flex-wrap:nowrap">
+        <input id="chatIn" placeholder="${ai?'Message your coach…':'Add an API key in Settings first'}" ${ai?'':'disabled'} onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();act.sendChat()}">
+        <button class="btn primary" data-act="sendChat" ${ai&&!chatBusy?'':'disabled'}>Send</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        ${['Plan my afternoon','I don\'t feel like working out','Roast my week','Build me a workout for today','How do I beat this boss?'].map(p=>`<button class="btn sm" data-act="quickAsk" data-p="${esc(p)}" ${ai&&!chatBusy?'':'disabled'}>${esc(p)}</button>`).join('')}
+        ${state.coach.chat.length?'<button class="btn sm danger" data-act="clearChat">Clear</button>':''}
+      </div>
+    </div>
+    <div class="card"><h3>📯 Coach feed</h3><div class="feed">
+      ${state.coach.feed.slice(0,15).map(f=>`<div class="fi">${esc(f.text)}<div class="dim" style="font-size:11px;margin-top:2px">${new Date(f.t).toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})}</div></div>`).join('')||'<p class="muted">Reactions to what you do show up here.</p>'}
+    </div></div>
+  </div>`;
+};
+let chatBusy = false;
+
+VIEWS.settings = () => {
+  const p = state.profile, c = state.coach;
+  return `
+  <div class="section-title"><h2>🧙 Hero</h2></div>
+  <div class="card"><div class="grid3">
+    <label class="f">Name<input id="s_name" value="${esc(p.name)}"></label>
+    <label class="f">Class<select id="s_cls">${Object.entries(CLASSES).map(([k,v])=>`<option value="${k}" ${p.cls===k?'selected':''}>${v.icon} ${v.name}: ${v.desc}</option>`).join('')}</select></label>
+    <label class="f">Wake-up time<input id="s_wake" type="time" value="${p.wake}"></label>
+    <label class="f">Bedtime<input id="s_bed" type="time" value="${p.bedtime}"></label>
+    <label class="f">Daily screen limit (min)<input id="s_limit" type="number" value="${p.screenLimit}"></label>
+    <label class="f">Free screen min/day before quests<input id="s_base" type="number" value="${p.baseScreen}"></label>
+  </div><div class="row" style="margin-top:12px"><button class="btn primary" data-act="saveProfile">Save hero</button></div></div>
+
+  <div class="section-title"><h2>🤖 AI Coach</h2><span class="sub">Your key stays on this device only</span></div>
+  <div class="card">
+    <div class="grid3">
+      <label class="f">Provider<select id="c_prov">
+        <option value="none" ${c.provider==='none'?'selected':''}>Off (built-in lines)</option>
+        <option value="gemini" ${c.provider==='gemini'?'selected':''}>Google Gemini (free tier)</option>
+        <option value="anthropic" ${c.provider==='anthropic'?'selected':''}>Claude (Anthropic, paid)</option></select></label>
+      <label class="f">Gemini API key<input id="c_kg" type="password" autocomplete="off" value="${esc(c.keys.gemini)}" placeholder="AIza…"></label>
+      <label class="f">Gemini model<input id="c_mg" value="${esc(c.models.gemini)}"></label>
+      <span></span>
+      <label class="f">Claude API key<input id="c_ka" type="password" autocomplete="off" value="${esc(c.keys.anthropic)}" placeholder="sk-ant-…"></label>
+      <label class="f">Claude model<input id="c_ma" value="${esc(c.models.anthropic)}"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="saveCoach">Save</button><button class="btn" data-act="testCoach">Test connection</button><span id="testOut" class="muted" style="font-size:13px"></span></div>
+    <p class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:0"><b>Free option:</b> go to <b>aistudio.google.com</b>, sign in with a personal Google account, click <b>Get API key → Create API key</b>, and paste it here. The free tier costs $0 but has daily limits; the coach only calls it for big moments and chat. (School Google accounts may block AI Studio.)<br>
+    Keys are saved only in this browser. They are <b>never</b> included in backups. Enter the key separately on your iPad and your computer.</p>
+  </div>
+
+  <div class="section-title"><h2>🗡️ Quests</h2><span class="sub">Edit, add or retire quests</span><span class="right"><button class="btn sm primary" data-act="addQuest">+ New quest</button></span></div>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th></th><th>Quest</th><th>Type</th><th>When</th><th>XP</th><th>🪙</th><th>📺 min</th><th>Days</th><th></th></tr>
+    ${state.quests.filter(q=>!q.archived).map(q=>`<tr>
+      <td><input data-q="${q.id}" data-f="icon" value="${esc(q.icon)}" style="width:46px;padding:6px;text-align:center"></td>
+      <td><input data-q="${q.id}" data-f="name" value="${esc(q.name)}" style="min-width:180px;padding:6px 8px"></td>
+      <td><select data-q="${q.id}" data-f="cat" style="padding:6px">${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${q.cat===k?'selected':''}>${v.label}</option>`).join('')}</select></td>
+      <td><select data-q="${q.id}" data-f="slot" style="padding:6px">${SLOTS.map(s=>`<option value="${s.id}" ${q.slot===s.id?'selected':''}>${s.label}</option>`).join('')}</select></td>
+      <td><input data-q="${q.id}" data-f="xp" type="number" value="${q.xp}" style="width:62px;padding:6px"></td>
+      <td><input data-q="${q.id}" data-f="gold" type="number" value="${q.gold}" style="width:58px;padding:6px"></td>
+      <td><input data-q="${q.id}" data-f="min" type="number" value="${q.min||0}" style="width:58px;padding:6px"></td>
+      <td style="white-space:nowrap">${'SMTWTFS'.split('').map((l,i)=>`<button class="btn sm" style="padding:4px 6px;margin:1px;${q.days.includes(i)?'background:var(--xp);border-color:var(--xp);color:#fff':''}" data-act="toggleDay" data-id="${q.id}" data-d="${i}">${l}</button>`).join('')}</td>
+      <td><button class="btn sm danger" data-act="archiveQuest" data-id="${q.id}" title="Retire quest">✕</button></td></tr>`).join('')}
+  </table><div class="row" style="margin-top:12px"><button class="btn primary" data-act="saveQuests">Save quests</button><span class="muted" style="font-size:12px">Missing a quest costs 5 HP (8 HP if it's worth 25+ XP) and heals the boss.</span></div></div>
+
+  <div class="section-title"><h2>🎁 Real-Life Rewards</h2><span class="right"><button class="btn sm primary" data-act="addReward">+ New reward</button></span></div>
+  <div class="card"><table><tr><th></th><th>Reward</th><th>Cost</th><th></th></tr>
+    ${state.rewards.map(r=>`<tr><td><input data-r="${r.id}" data-f="icon" value="${esc(r.icon)}" style="width:46px;padding:6px;text-align:center"></td>
+      <td><input data-r="${r.id}" data-f="name" value="${esc(r.name)}" style="padding:6px 8px"></td>
+      <td><input data-r="${r.id}" data-f="cost" type="number" value="${r.cost}" style="width:90px;padding:6px"></td>
+      <td><button class="btn sm danger" data-act="delReward" data-id="${r.id}">✕</button></td></tr>`).join('')}
+  </table><div class="row" style="margin-top:12px"><button class="btn primary" data-act="saveRewards">Save rewards</button></div></div>
+
+  <div class="section-title"><h2>💾 Backup & Sync</h2><span class="sub">Move your hero between iPad and computer</span></div>
+  <div class="card"><div class="row">
+    <button class="btn" data-act="exportData">⬇️ Export backup</button>
+    <label class="btn" style="display:inline-block">⬆️ Import backup<input type="file" accept="application/json" id="importFile" style="display:none" onchange="act.importData(this)"></label>
+    <span class="spacer"></span><button class="btn danger" data-act="resetAll">Reset everything</button></div>
+    <p class="muted" style="font-size:12.5px;margin-bottom:0">Each device keeps its own save. To switch devices, export here, then import on the other one (AirDrop the file).</p></div>`;
+};
+
+/* ---------- actions ---------- */
+const act = {
+  nav: d => { view = d.v; render(); window.scrollTo({top:0,behavior:'smooth'}); },
+  closeModal: () => closeModal(),
+  toggle: (d, el) => {
+    const q = state.quests.find(x=>x.id===d.id); if (!q) return;
+    if (isDone(todayLog(), q)) undoQuest(q); else completeQuest(q, el);
+  },
+  count: (d, el) => {
+    const q = state.quests.find(x=>x.id===d.id), log = todayLog();
+    const n = Math.max(0, Math.min(q.target+4, (log.counts[q.id]||0) + Number(d.d)));
+    log.counts[q.id] = n;
+    if (n >= q.target && !log.done[q.id]) { completeQuest(q, el); return; }
+    if (n < q.target && log.done[q.id]) { undoQuest(q); return; }
+    if (Number(d.d) > 0) sfx('tick');
+    save(); render();
+  },
+  saveJournal: () => {
+    const t = document.getElementById('journal').value.trim();
+    const log = todayLog(); const first = !log.journal && t;
+    log.journal = t; save(); render();
+    toast('📜 Reflection saved');
+    if (t) coachEvent('journal', `Wrote tonight's reflection: "${t.slice(0,300)}"${first?'':' (edited)'}`);
+  },
+  trainType: d => { trainType = d.t; render(); },
+  logWorkout: () => {
+    const v = id => document.getElementById(id)?.value?.trim();
+    let w;
+    if (trainType==='lift') {
+      if (!v('w_ex')) return toast('Name the exercise','bad');
+      w = { type:'lift', exercise:v('w_ex'), weight:+v('w_wt')||0, reps:+v('w_reps')||0, sets:+v('w_sets')||1 };
+    } else if (trainType==='run') {
+      if (!+v('w_mi')) return toast('How many miles?','bad');
+      w = { type:'run', miles:+v('w_mi'), minutes:+v('w_min')||0 };
+    } else {
+      if (!v('w_ex') && !+v('w_min')) return toast('What did you do?','bad');
+      w = { type:'home', exercise:v('w_ex')||'Home workout', minutes:+v('w_min')||0 };
+    }
+    logWorkout(w);
+  },
+  restDay: () => {
+    const wk = weekKey(dayKey()), q = state.quests.find(x=>x.id==='workout'), log = todayLog();
+    if (state.restWeeks[wk] || !q || log.done[q.id]) return;
+    state.restWeeks[wk] = dayKey();
+    log.done[q.id] = { at: Date.now(), xp: 0, gold: 0, boss: 0, rest: true };
+    toast('😴 Rest day. Recovery is part of training. Workout streak protected.');
+    save(); render();
+  },
+  screen: d => {
+    const log = todayLog();
+    log.screen[d.k] = Math.max(0, (log.screen[d.k]||0) + Number(d.n));
+    log.screen.logged = true;
+    const si = screenInfo();
+    if (Number(d.n) > 0 && si.used > si.earned) toast(`⚠️ ${si.used-si.earned} min over your earned time`, 'bad');
+    save(); render();
+  },
+  screenZero: () => { todayLog().screen.logged = true; toast('📵 Zero-screen day logged. Respect.','good'); save(); render(); },
+  buyScreen: () => {
+    if (state.hero.gold < 120) return;
+    state.hero.gold -= 120; todayLog().bonusMin = (todayLog().bonusMin||0) + 15;
+    toast('📜 +15 screen minutes today'); save(); render();
+  },
+  potion: () => { if (state.hero.gold<100) return; state.hero.gold -= 100; heal(25); sfx('ding'); toast('❤️‍🩹 +25 HP'); save(); render(); },
+  redeem: d => {
+    const r = state.rewards.find(x=>x.id===d.id); if (!r || state.hero.gold < r.cost) return;
+    if (!confirm(`Redeem "${r.name}" for ${r.cost} gold?`)) return;
+    state.hero.gold -= r.cost; state.redeemed.unshift({ name:r.name, cost:r.cost, day:dayKey() });
+    confetti(); toast(`🎁 Enjoy: ${r.name}`,'good'); save(); render();
+  },
+  buyGear: d => {
+    const g = gearOf(d.id); if (!g || state.hero.gold < g.cost || state.owned.includes(g.id)) return;
+    state.hero.gold -= g.cost; state.owned.push(g.id); state.equipped[g.slot] = g.id;
+    if (g.hp) heal(g.hp);
+    sfx('ding'); toast(`${g.icon} Equipped ${g.name}`,'good'); save(); render();
+  },
+  equip: d => {
+    const g = gearOf(d.id); if (!g) return;
+    state.equipped[g.slot] = state.equipped[g.slot]===g.id ? null : g.id;
+    state.hero.hp = Math.min(state.hero.hp, maxHp()); save(); render();
+  },
+  buyTitle: d => {
+    const t = TITLES.find(x=>x.id===d.id); if (!t || state.hero.gold < t.cost) return;
+    state.hero.gold -= t.cost; state.owned.push(t.id); state.equipped.title = t.id; save(); render();
+  },
+  equipTitle: d => { state.equipped.title = state.equipped.title===d.id ? null : d.id; save(); render(); },
+  sendChat: async (preset) => {
+    const input = document.getElementById('chatIn');
+    const text = (typeof preset === 'string' ? preset : input?.value || '').trim();
+    if (!text || chatBusy) return;
+    state.coach.chat.push({ role:'user', content:text });
+    chatBusy = true; render();
+    try {
+      const reply = await askAI(state.coach.chat.slice(-16), 2048);
+      state.coach.chat.push({ role:'assistant', content: reply });
+    } catch(e) {
+      state.coach.chat.pop();
+      toast(e.message==='no-key' ? 'Add an API key in Settings first' : `Coach error: ${e.message}`, 'bad');
+      chatBusy = false; render();
+      const i = document.getElementById('chatIn'); if (i) i.value = text;
+      return;
+    }
+    state.coach.chat = state.coach.chat.slice(-40);
+    chatBusy = false; save(); render();
+    document.getElementById('chatIn')?.focus();
+  },
+  quickAsk: d => act.sendChat(d.p),
+  clearChat: () => { state.coach.chat = []; save(); render(); },
+  saveProfile: () => {
+    const p = state.profile, v = id => document.getElementById(id).value;
+    p.name = v('s_name').trim() || 'Hero'; p.cls = v('s_cls'); p.wake = v('s_wake'); p.bedtime = v('s_bed');
+    p.screenLimit = Math.max(0, +v('s_limit')||120); p.baseScreen = Math.max(0, +v('s_base')||0);
+    const bed = state.quests.find(q=>q.id==='bed'); if (bed) bed.name = `Lights out by ${fmtTime(p.bedtime)}`;
+    const wake = state.quests.find(q=>q.id==='wake'); if (wake) wake.name = `Up by ${fmtTime(p.wake)}`;
+    save(); render(); toast('✓ Hero saved');
+  },
+  saveCoach: () => {
+    const c = state.coach, v = id => document.getElementById(id).value.trim();
+    c.provider = v('c_prov'); c.keys.gemini = v('c_kg'); c.keys.anthropic = v('c_ka');
+    c.models.gemini = v('c_mg') || 'gemini-flash-latest'; c.models.anthropic = v('c_ma') || 'claude-opus-5-5';
+    save(); toast('✓ Coach settings saved');
+  },
+  testCoach: async () => {
+    act.saveCoach();
+    const out = document.getElementById('testOut');
+    out.textContent = 'Testing…';
+    try { const r = await askAI([{role:'user', content:'Connection test. Greet me in one short sentence as my coach.'}], 512); out.style.color = 'var(--ok)'; out.textContent = '✓ ' + r; }
+    catch(e) { out.style.color = '#fca5a5'; out.textContent = e.message==='no-key' ? 'Pick a provider and paste a key first.' : '✕ ' + e.message; }
+  },
+  saveQuests: () => {
+    document.querySelectorAll('[data-q]').forEach(inp => {
+      const q = state.quests.find(x=>x.id===inp.dataset.q); if (!q) return;
+      const f = inp.dataset.f; q[f] = ['xp','gold','min'].includes(f) ? Math.max(0, +inp.value||0) : inp.value;
+    });
+    save(); render(); toast('✓ Quests saved');
+  },
+  addQuest: () => {
+    act.saveQuests();
+    state.quests.push({ id:'q'+Date.now().toString(36), name:'New quest', icon:'⭐', cat:'focus', slot:'anytime', xp:15, gold:5, min:5, days:[...WEEKDAYS] });
+    save(); render();
+  },
+  archiveQuest: d => {
+    const q = state.quests.find(x=>x.id===d.id); if (!q || !confirm(`Retire "${q.name}"? Its streak history is kept.`)) return;
+    q.archived = true; save(); render();
+  },
+  toggleDay: d => {
+    act.saveQuests();
+    const q = state.quests.find(x=>x.id===d.id), i = +d.d;
+    q.days = q.days.includes(i) ? q.days.filter(x=>x!==i) : [...q.days, i].sort();
+    save(); render();
+  },
+  saveRewards: () => {
+    document.querySelectorAll('[data-r]').forEach(inp => {
+      const r = state.rewards.find(x=>x.id===inp.dataset.r); if (!r) return;
+      r[inp.dataset.f] = inp.dataset.f==='cost' ? Math.max(0, +inp.value||0) : inp.value;
+    });
+    save(); render(); toast('✓ Rewards saved');
+  },
+  addReward: () => { act.saveRewards(); state.rewards.push({ id:'r'+Date.now().toString(36), name:'New reward', icon:'🎁', cost:300 }); save(); render(); },
+  delReward: d => { state.rewards = state.rewards.filter(r=>r.id!==d.id); save(); render(); },
+  exportData: () => {
+    const copy = JSON.parse(JSON.stringify(state));
+    copy.coach.keys = { gemini:'', anthropic:'' };
+    const blob = new Blob([JSON.stringify(copy, null, 1)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ascend-backup-${dayKey()}.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  },
+  importData: input => {
+    const f = input.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(r.result);
+        if (!data.hero || !data.quests) throw new Error('bad');
+        if (!confirm('Replace this device\'s save with the backup? (Your API keys here are kept.)')) return;
+        const keys = state.coach.keys;
+        state = Object.assign(freshState(), data);
+        state.coach.keys = keys;
+        processDays(); save(); render(); toast('✓ Backup imported','good');
+      } catch(e){ toast('That file isn\'t an Ascend backup','bad'); }
+    };
+    r.readAsText(f);
+  },
+  resetAll: () => {
+    if (!confirm('Delete your hero and ALL progress on this device? This cannot be undone.')) return;
+    if (!confirm('Really sure? Export a backup first if you might want it.')) return;
+    const keys = state.coach.keys, prov = state.coach.provider;
+    state = freshState(); state.onboarded = true; state.coach.keys = keys; state.coach.provider = prov;
+    ensureBoss(); save(); render();
+  },
+  startGame: () => {
+    const n = document.getElementById('ob_name')?.value.trim();
+    if (n) state.profile.name = n;
+    state.onboarded = true; save(); closeModal(); render();
+    coachEvent('open', `${state.profile.name} just created their hero and opened Ascend for the very first time`);
+  },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  const fn = act[el.dataset.act]; if (fn) fn(el.dataset, el);
+});
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+/* ---------- modals, toasts, fx ---------- */
+const modalQueue = [];
+function showModal(html){ document.getElementById('mbox').innerHTML = html; document.getElementById('modal').classList.add('open'); }
+function queueModal(html){ if (document.getElementById('modal').classList.contains('open')) modalQueue.push(html); else showModal(html); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); if (modalQueue.length) setTimeout(()=>showModal(modalQueue.shift()), 150); }
+function levelUpModal(lvl, bonus){
+  confetti(); sfx('level');
+  return `<div style="text-align:center"><div style="font-size:64px">⬆️</div><h2>LEVEL ${lvl}!</h2>
+    <p>You're now a <b>${rankOf(lvl)}</b>. HP fully restored and max HP +5.<br><b class="gold">+${bonus} gold</b> level bonus.</p>
+    <button class="btn gold" data-act="closeModal">Keep climbing</button></div>`;
+}
+function toast(msg, kind=''){
+  const t = document.createElement('div'); t.className = `toast ${kind}`; t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .3s'; t.style.opacity=0; setTimeout(()=>t.remove(),300); }, 3200);
+}
+function floaty(el, text){
+  const r = el.getBoundingClientRect(); const f = document.createElement('div');
+  f.className = 'floaty'; f.textContent = text; f.style.left = (r.left + r.width/2 - 30)+'px'; f.style.top = (r.top - 10)+'px';
+  document.body.appendChild(f); setTimeout(()=>f.remove(), 1000);
+}
+function burst(el, emojis){
+  const r = el.getBoundingClientRect();
+  for (let i=0;i<8;i++){ const b = document.createElement('div'); b.className='burst'; b.textContent = emojis[i%emojis.length];
+    b.style.left = (r.left+r.width/2-10)+'px'; b.style.top = (r.top+r.height/2-10)+'px';
+    const a = Math.random()*Math.PI*2, dist = 40+Math.random()*50;
+    b.style.setProperty('--dx', Math.cos(a)*dist+'px'); b.style.setProperty('--dy', Math.sin(a)*dist+'px'); b.style.setProperty('--rot', (Math.random()*360)+'deg');
+    document.body.appendChild(b); setTimeout(()=>b.remove(), 1100); }
+}
+function confetti(){
+  const items = ['🎉','⭐','✨','🪙','⚔️','💎'];
+  for (let i=0;i<36;i++){ const b = document.createElement('div'); b.className='burst'; b.textContent = items[i%items.length];
+    b.style.left = (window.innerWidth/2)+'px'; b.style.top = (window.innerHeight/2)+'px'; b.style.fontSize = (16+Math.random()*16)+'px';
+    const a = Math.random()*Math.PI*2, dist = 120+Math.random()*260;
+    b.style.setProperty('--dx', Math.cos(a)*dist+'px'); b.style.setProperty('--dy', Math.sin(a)*dist+'px'); b.style.setProperty('--rot', (Math.random()*720-360)+'deg');
+    b.style.animationDuration = (0.9+Math.random()*0.7)+'s';
+    document.body.appendChild(b); setTimeout(()=>b.remove(), 1700); }
+}
+let actx;
+function sfx(kind){
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const notes = { ding:[880,1320], tick:[660], level:[523,659,784,1047] }[kind] || [880];
+    notes.forEach((f,i)=>{ const o = actx.createOscillator(), g = actx.createGain(); o.type='triangle'; o.frequency.value=f;
+      const t = actx.currentTime + i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+0.3); });
+  } catch(e){}
+}
+
+/* ---------- boot ---------- */
+function onboarding(){
+  showModal(`<div style="text-align:center"><div style="font-size:60px">⚔️</div><h2 style="font-size:26px">Welcome to Ascend</h2>
+    <p class="muted">Your hero is ready, built from your answers.</p></div>
+    <div class="card" style="margin:14px 0;font-size:14px;line-height:1.7">
+      ⚔️ <b>Warrior</b>: +25% XP on fitness quests<br>
+      📚 Homework before screens · study · read · plan tomorrow<br>
+      🏋️ Lift, run, or home workout 6–7 days (1 rest day/week)<br>
+      💧 Water · protein · stretching · no junk food<br>
+      💻 Code 30 min · learn a skill<br>
+      📺 YouTube + games capped at <b>2 hrs</b>, earned by quests<br>
+      🛌 Lights out by <b>10:00 PM</b><br>
+      💀 Miss quests and you <b>lose streaks + HP</b>, and the boss heals
+    </div>
+    <label class="f">Hero name<input id="ob_name" value="${esc(state.profile.name)}"></label>
+    <div style="text-align:center;margin-top:16px"><button class="btn gold" data-act="startGame" style="padding:12px 26px;font-size:16px">Begin the climb</button></div>`);
+}
+function tick(){
+  if (state.lastProcessed < addDays(dayKey(), -1)) { processDays(); render(); showReport(); }
+}
+
+load();
+processDays();
+render();
+if (!state.onboarded) onboarding();
+else {
+  showReport();
+  if (!state.coach.line || Date.now() - (state.coach.feed[0]?.t||0) > 3*3600e3) coachEvent('open', `${state.profile.name} opened the app (${greet().toLowerCase()})`);
+}
+setInterval(tick, 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
