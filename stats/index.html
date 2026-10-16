@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ascend Stats</title>
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Stats">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --surface2:#f1f0ec; --hover:rgba(11,11,11,.04);
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --accent:#2a78d6; --accent-ink:#fff;
+  --c-school:#2a78d6; --c-fitness:#eb6834; --c-health:#1baf7a; --c-business:#eda100; --c-focus:#e87ba4;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#0ca30c; --good-text:#006300; --warn:#fab219; --crit:#d03b3b; --crit-text:#b42c2c;
+  --h0:#ebeae5; --h1:#cde2fb; --h2:#9ec5f4; --h3:#5598e7; --h4:#256abf; --h5:#104281;
+  --shadow:0 1px 2px rgba(11,11,11,.04),0 1px 8px rgba(11,11,11,.03);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface2:#242422; --hover:rgba(255,255,255,.05);
+    --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --accent:#3987e5;
+    --c-school:#3987e5; --c-fitness:#d95926; --c-health:#199e70; --c-business:#c98500; --c-focus:#d55181;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good-text:#0ca30c; --crit-text:#e66767;
+    --h0:#242422; --h1:#0d366b; --h2:#184f95; --h3:#256abf; --h4:#3987e5; --h5:#86b6ef;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface2:#242422; --hover:rgba(255,255,255,.05);
+  --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --accent:#3987e5;
+  --c-school:#3987e5; --c-fitness:#d95926; --c-health:#199e70; --c-business:#c98500; --c-focus:#d55181;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good-text:#0ca30c; --crit-text:#e66767;
+  --h0:#242422; --h1:#0d366b; --h2:#184f95; --h3:#256abf; --h4:#3987e5; --h5:#86b6ef;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+textarea{resize:vertical;min-height:64px}
+h1,h2,h3,p{margin:0}
+
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--page) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding-top:env(safe-area-inset-top)}
+.topin{max-width:1100px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:20px}
+.logo{font-weight:700;font-size:16px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.logo i{display:inline-flex;gap:2px;align-items:flex-end;height:16px}
+.logo i b{width:4px;background:var(--accent);border-radius:2px 2px 0 0}
+.tabs{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:10px}
+.tab{border:0;background:none;padding:7px 14px;border-radius:8px;font-size:14px;font-weight:500;color:var(--ink2)}
+.tab.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--border)}
+main{max-width:1100px;margin:0 auto;padding:24px 24px 60px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card h3{font-size:14px;font-weight:600;margin-bottom:2px}
+.card .sub{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.g-main{grid-template-columns:1.6fr 1fr}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spacer{flex:1}
+.muted{color:var(--muted)} .ink2{color:var(--ink2)}
+.sec{display:flex;align-items:baseline;gap:10px;margin:28px 0 12px}
+.sec h2{font-size:15px;font-weight:600}
+.sec .muted{font-size:13px}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:8px 13px;font-size:13.5px;font-weight:500}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn.danger{color:var(--crit-text)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label.f{display:grid;gap:5px;font-size:12px;font-weight:500;color:var(--ink2)}
+.seg{display:inline-flex;background:var(--surface2);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--ink2)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--border)}
+
+/* today */
+.hero{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.hero .big{font-size:56px;font-weight:600;letter-spacing:-2px;line-height:1}
+.hero .big small{font-size:24px;letter-spacing:0;color:var(--muted);font-weight:500}
+.progress{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:14px}
+.progress>div{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.group{margin-top:18px}
+.group-h{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:0 4px 6px}
+.habit{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:1px solid transparent}
+.habit:hover{background:var(--hover)}
+.habit+.habit{border-top:1px solid var(--grid);border-radius:0}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.habit .nm{flex:1;font-size:14.5px;font-weight:500;min-width:0}
+.habit .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.habit.done .nm{color:var(--muted)}
+.cb{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--axis);background:var(--surface);display:grid;place-items:center;flex:none;transition:all .12s}
+.cb svg{opacity:0}
+.habit.done .cb{background:var(--accent);border-color:var(--accent)}
+.habit.done .cb svg{opacity:1}
+.ctr{display:flex;align-items:center;gap:4px}
+.ctr button{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-size:16px;line-height:1}
+.ctr span{min-width:46px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.minibar{height:4px;border-radius:2px;background:var(--surface2);margin-top:6px;max-width:160px;overflow:hidden}
+.minibar>div{height:100%;background:var(--accent)}
+.strip{display:flex;gap:3px}
+.strip i{width:10px;height:10px;border-radius:3px;background:var(--h0)}
+.strip i.y{background:var(--accent)} .strip i.n{background:transparent;box-shadow:inset 0 0 0 1px var(--axis)}
+
+/* kpi */
+.kpi .lab{font-size:12.5px;color:var(--ink2);font-weight:500}
+.kpi .val{font-size:28px;font-weight:600;letter-spacing:-.6px;margin-top:6px}
+.kpi .val small{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
+.kpi .dl{font-size:12px;margin-top:4px;color:var(--muted)}
+.up{color:var(--good-text)} .down{color:var(--crit-text)}
+
+/* status pill */
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--ink2)}
+.st i{width:8px;height:8px;border-radius:50%}
+
+/* charts */
+.chart{width:100%;position:relative}
+.chart svg{display:block;overflow:visible}
+.chart text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.hit{fill:transparent}
+.hit:hover{fill:var(--hover)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px}
+.hbar{display:grid;grid-template-columns:minmax(120px,1.5fr) 2fr 44px;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.hbar .nm{display:flex;align-items:center;gap:8px;min-width:0}
+.hbar .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar .tr{height:10px;position:relative}
+.hbar .tr>div{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
+.hbar .tr::before{content:"";position:absolute;left:0;top:-3px;bottom:-3px;width:1px;background:var(--axis)}
+.hbar .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;overflow-x:auto}
+.heat i{aspect-ratio:1;min-width:11px;border-radius:3px;background:var(--h0)}
+.heat i.x{background:transparent}
+.heat-wrap{display:grid;grid-template-columns:auto 1fr;gap:6px}
+.heat-days{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;font-size:10px;color:var(--muted);align-items:center}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--page);font-size:12px;line-height:1.45;padding:7px 10px;border-radius:8px;max-width:240px;opacity:0;transition:opacity .1s;white-space:pre-line}
+#tip.on{opacity:1}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--grid)}
+th{font-size:11.5px;font-weight:600;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.ins{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--grid)}
+.ins:last-child{border-bottom:0}
+.ins .ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--surface2);font-size:13px;font-weight:700}
+.ins b{font-weight:600}
+.ins p{font-size:14px;line-height:1.5;color:var(--ink2)}
+.ai-out{white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--ink2)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--page);padding:9px 14px;border-radius:10px;font-size:13.5px;z-index:60;animation:tin .2s}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;place-items:center;z-index:70;padding:20px}
+#modal.open{display:grid}
+#modal .card{max-width:460px;width:100%}
+
+.lift{grid-template-columns:2fr 1fr 1fr 1fr}
+@media (max-width:900px){.g4{grid-template-columns:1fr 1fr}.g-main{grid-template-columns:1fr}}
+@media (max-width:700px){
+  header.top{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--page)}
+  .topin{padding:10px 16px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;border-radius:0;justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);z-index:30}
+  .tab{flex:1;font-size:12.5px;padding:8px 2px}
+  main{padding:16px 16px 100px}
+  .g2,.g3{grid-template-columns:1fr}
+  .lift{grid-template-columns:1fr 1fr}
+  .hero .big{font-size:48px}
+  .hbar{grid-template-columns:minmax(90px,1fr) 1.4fr 40px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <div class="logo"><i><b style="height:7px"></b><b style="height:12px"></b><b style="height:9px"></b><b style="height:16px"></b></i>Ascend Stats</div>
+  <nav class="tabs" id="tabs"></nav>
+</div></header>
+<main id="view"></main>
+<div id="tip"></div>
+<div id="modal"><div class="card" id="mbox"></div></div>
+
+<script>
+/* Ascend Stats — habit tracking with plain numbers. All data stays in this browser. */
+const KEY = 'ascend-stats.v1';
+const DAY_START_HOUR = 3;
+
+const CATS = {
+  school:   { label:'School',   v:'--c-school' },
+  fitness:  { label:'Fitness',  v:'--c-fitness' },
+  health:   { label:'Health',   v:'--c-health' },
+  business: { label:'Business', v:'--c-business' },
+  focus:    { label:'Focus',    v:'--c-focus' },
+};
+const SLOTS = [['morning','Morning'],['afterschool','After school'],['anytime','All day'],['night','Evening']];
+const ALL = [0,1,2,3,4,5,6], WEEKDAYS = [1,2,3,4,5], SUN_THU = [0,1,2,3,4];
+const DEFAULT_HABITS = [
+  { id:'wake',     name:'Up by 6:30 AM',             cat:'focus',    slot:'morning',     days:WEEKDAYS },
+  { id:'stretch',  name:'Stretch 10 min',            cat:'health',   slot:'morning',     days:ALL },
+  { id:'homework', name:'Homework before screens',   cat:'school',   slot:'afterschool', days:SUN_THU },
+  { id:'study',    name:'Study / review 20 min',     cat:'school',   slot:'afterschool', days:SUN_THU },
+  { id:'workout',  name:'Workout',                   cat:'fitness',  slot:'afterschool', days:ALL },
+  { id:'code',     name:'Build / code 30 min',       cat:'business', slot:'afterschool', days:ALL },
+  { id:'learn',    name:'Learn a skill',             cat:'business', slot:'afterschool', days:ALL },
+  { id:'water',    name:'Water',                     cat:'health',   slot:'anytime',     days:ALL, target:8, unit:'glasses' },
+  { id:'protein',  name:'Protein goal',              cat:'health',   slot:'anytime',     days:ALL },
+  { id:'nojunk',   name:'No junk food',              cat:'health',   slot:'anytime',     days:ALL },
+  { id:'read',     name:'Read 20 min',               cat:'school',   slot:'night',       days:ALL },
+  { id:'plan',     name:'Plan tomorrow',             cat:'school',   slot:'night',       days:SUN_THU },
+  { id:'bed',      name:'Lights out by 10:00 PM',    cat:'health',   slot:'night',       days:SUN_THU },
+];
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,'0');
+const keyOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dayKey = () => keyOf(new Date(Date.now() - DAY_START_HOUR*3600e3));
+const fromKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (k,n) => { const d = fromKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const weekKey = k => addDays(k, -((fromKey(k).getDay()+6)%7));
+const dow = k => fromKey(k).getDay();
+const fmtDay = (k,o={weekday:'short',month:'short',day:'numeric'}) => fromKey(k).toLocaleDateString(undefined,o);
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOWL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const pct = x => x==null ? '–' : Math.round(x*100)+'%';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const catColor = c => `var(${(CATS[c]||CATS.focus).v})`;
+
+/* ---------- state ---------- */
+let state;
+function fresh(){
+  const t = dayKey();
+  return {
+    v:1, createdAt:t, imported:false,
+    settings:{ name:'Hudson', screenLimit:120, workoutGoal:6, theme:'auto' },
+    habits: DEFAULT_HABITS.map(h => ({...h, days:[...h.days], since:t})),
+    log:{}, prs:{},
+    ai:{ provider:'none', keys:{gemini:'',anthropic:''}, models:{gemini:'gemini-flash-latest',anthropic:'claude-opus-5-5'}, review:null },
+  };
+}
+function load(){ try { const r = localStorage.getItem(KEY); state = r ? Object.assign(fresh(), JSON.parse(r)) : fresh(); } catch(e){ state = fresh(); } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){ toast('Could not save — storage is blocked or full'); } }
+function L(k){ return state.log[k] || (state.log[k] = { done:{}, counts:{}, screen:{youtube:0,games:0,logged:false}, workouts:[], note:'' }); }
+const peek = k => state.log[k];
+
+/* ---------- core metrics ---------- */
+const activeOn = (h,k) => (h.since||state.createdAt) <= k && (!h.archivedAt || k < h.archivedAt) && h.days.includes(dow(k));
+const scheduled = k => state.habits.filter(h => activeOn(h,k));
+const isDone = (k,h) => !!peek(k)?.done[h.id];
+function dayStats(k){
+  if (k < state.createdAt || k > dayKey()) return null;
+  const hs = scheduled(k); if (!hs.length) return null;
+  const done = hs.filter(h => isDone(k,h)).length;
+  return { done, total:hs.length, pct:done/hs.length };
+}
+function rangeKeys(n, end = dayKey()){ return [...Array(n)].map((_,i) => addDays(end, i-n+1)); }
+function avgPct(keys){
+  const v = keys.map(dayStats).filter(Boolean);
+  // exclude today if it's in progress, unless it's the only day
+  const t = dayKey(); const w = v.length > 1 ? keys.filter(k=>k!==t).map(dayStats).filter(Boolean) : v;
+  return w.length ? w.reduce((a,b)=>a+b.pct,0)/w.length : null;
+}
+function streakFrom(k, test){
+  let s = 0;
+  if (test(k) === true) s++;
+  k = addDays(k,-1);
+  while (k >= state.createdAt) { const r = test(k); if (r === null) { k = addDays(k,-1); continue; } if (!r) break; s++; k = addDays(k,-1); }
+  return s;
+}
+const dayOk = k => { const d = dayStats(k); return d ? d.pct >= 0.8 : null; };
+const dayStreak = () => streakFrom(dayKey(), dayOk);
+function bestDayStreak(){
+  let best = 0, cur = 0;
+  for (let k = state.createdAt; k <= dayKey(); k = addDays(k,1)) { const r = dayOk(k); if (r === null) continue; cur = r ? cur+1 : 0; best = Math.max(best,cur); }
+  return best;
+}
+function habitStreak(h){
+  return streakFrom(dayKey(), k => activeOn(h,k) ? isDone(k,h) : null);
+}
+function habitBest(h){
+  let best=0,cur=0; for (let k=(h.since||state.createdAt); k<=dayKey(); k=addDays(k,1)) { if (!activeOn(h,k)) continue; if (isDone(k,h)) { cur++; best=Math.max(best,cur); } else if (k!==dayKey()) cur=0; } return best;
+}
+function habitRate(h, keys){
+  const t = dayKey(); let s = 0, d = 0;
+  for (const k of keys) { if (!activeOn(h,k)) continue; if (k===t && !isDone(k,h)) continue; s++; if (isDone(k,h)) d++; }
+  return s ? { rate:d/s, done:d, sched:s } : null;
+}
+function screen(k){ const l = peek(k); const y = l?.screen.youtube||0, g = l?.screen.games||0; return { yt:y, games:g, total:y+g, logged: !!(l && (l.screen.logged || y+g>0)) }; }
+function workoutsIn(keys){ return keys.flatMap(k => (peek(k)?.workouts||[]).map(w => ({...w, day:k}))); }
+
+/* ---------- habit actions ---------- */
+function setDone(h, on){
+  const l = L(dayKey());
+  if (on) l.done[h.id] = Date.now(); else delete l.done[h.id];
+  save(); render();
+}
+function bump(h, d){
+  const l = L(dayKey());
+  const n = Math.max(0, (l.counts[h.id]||0) + d);
+  l.counts[h.id] = n;
+  if (n >= h.target) l.done[h.id] = l.done[h.id] || Date.now(); else delete l.done[h.id];
+  save(); render();
+}
+function describeW(w){
+  if (w.type==='lift') return `${w.exercise} · ${w.sets||1}×${w.reps||'?'} @ ${w.weight||0} lb`;
+  if (w.type==='run') return `Run · ${w.miles} mi${w.minutes?` · ${w.minutes} min`:''}${w.minutes&&w.miles?` · ${paceOf(w)}/mi`:''}`;
+  return `${w.exercise||'Home workout'}${w.minutes?` · ${w.minutes} min`:''}`;
+}
+function paceOf(w){ const p = w.minutes/w.miles; return `${Math.floor(p)}:${pad(Math.round((p%1)*60))}`; }
+
+/* =========================================================
+   CHARTS (SVG, drawn after layout so they fit their container)
+   ========================================================= */
+const charts = {};
+function niceMax(v){ if (v<=0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1,2,2.5,5,10]) if (m*p >= v) return m*p; return 10*p; }
+const rtop = (x,y,w,h,r) => { r = Math.min(r, w/2, h); if (h<=0) return ''; return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`; };
+/** Column chart. points: [{label, values:[...], tip}] ; colors: css var per series. */
+function columns(el, o){
+  const W = Math.max(260, el.clientWidth), H = o.height || 190, Lp = 38, Rp = 8, Tp = 10, Bp = 24;
+  const iw = W-Lp-Rp, ih = H-Tp-Bp, n = o.points.length, band = iw/n;
+  const bw = Math.max(2, Math.min(24, band*0.62));
+  const max = o.max || niceMax(Math.max(o.ref||0, ...o.points.map(p => p.values.reduce((a,b)=>a+(b||0),0))));
+  const y = v => Tp + ih - (v/max)*ih;
+  let s = `<svg width="${W}" height="${H}" role="img" aria-label="${esc(o.label||'')}">`;
+  const ticks = o.ticks || [0, max/2, max];
+  for (const t of ticks) s += `<line x1="${Lp}" x2="${W-Rp}" y1="${y(t)}" y2="${y(t)}" stroke="var(${t===0?'--axis':'--grid'})" stroke-width="1"/><text x="${Lp-6}" y="${y(t)+3.5}" text-anchor="end">${o.fmt?o.fmt(t):t}</text>`;
+  const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(iw/38))));
+  o.points.forEach((p,i) => {
+    const x = Lp + band*i + (band-bw)/2;
+    let acc = 0;
+    const nz = p.values.map((v,j)=>v>0?j:-1).filter(j=>j>=0); const topJ = nz[nz.length-1];
+    p.values.forEach((v,j) => {
+      if (!(v>0)) return;
+      const yt = y(acc+v), yb = y(acc); let h = yb-yt;
+      const gap = acc>0 ? 2 : 0; h -= gap;
+      s += j===topJ ? `<path d="${rtop(x,yt,bw,h,4)}" fill="var(${o.colors[j]})"/>` : `<rect x="${x}" y="${yt}" width="${bw}" height="${Math.max(0,h)}" fill="var(${o.colors[j]})"/>`;
+      acc += v;
+    });
+    if (p.empty) s += `<rect x="${x}" y="${y(0)-2}" width="${bw}" height="2" rx="1" fill="var(--grid)"/>`;
+    if (i % every === 0 || i === n-1 && n <= 14) s += `<text x="${Lp+band*i+band/2}" y="${H-6}" text-anchor="middle">${esc(p.label)}</text>`;
+    s += `<rect class="hit" x="${Lp+band*i}" y="${Tp}" width="${band}" height="${ih}" data-tip="${esc(p.tip)}"/>`;
+  });
+  if (o.ref) s += `<line x1="${Lp}" x2="${W-Rp}" y1="${y(o.ref)}" y2="${y(o.ref)}" stroke="var(--ink2)" stroke-width="1" pointer-events="none"/><text x="${W-Rp}" y="${y(o.ref)-5}" text-anchor="end" style="fill:var(--ink2);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round">${esc(o.refLabel||'')}</text>`;
+  el.innerHTML = s + '</svg>';
+}
+function drawCharts(){ for (const [id,fn] of Object.entries(charts)) { const el = document.getElementById(id); if (el) fn(el); } }
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawCharts, 120); });
+
+/* tooltip */
+const tip = document.getElementById('tip');
+function showTip(t, x, y){ tip.textContent = t; tip.classList.add('on'); const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.min(innerWidth-w-8, Math.max(8, x-w/2))+'px'; tip.style.top = Math.max(8, y-h-12)+'px'; }
+document.addEventListener('pointermove', e => { const t = e.target.closest?.('[data-tip]'); if (t && t.dataset.tip) showTip(t.dataset.tip, e.clientX, e.clientY); else tip.classList.remove('on'); });
+document.addEventListener('pointerdown', e => { const t = e.target.closest?.('[data-tip]'); if (t && t.dataset.tip) showTip(t.dataset.tip, e.clientX, e.clientY); });
+addEventListener('scroll', () => tip.classList.remove('on'), {passive:true});
+
+/* =========================================================
+   VIEWS
+   ========================================================= */
+let view = 'today', range = 30, wType = 'lift';
+const TABS = [['today','Today'],['stats','Stats'],['workouts','Workouts'],['insights','Insights'],['settings','Settings']];
+function render(){
+  document.getElementById('tabs').innerHTML = TABS.map(([id,l]) => `<button class="tab ${view===id?'on':''}" data-act="nav" data-v="${id}">${l}</button>`).join('');
+  for (const k in charts) delete charts[k];
+  document.getElementById('view').innerHTML = VIEWS[view]();
+  requestAnimationFrame(drawCharts);
+}
+const VIEWS = {};
+
+VIEWS.today = () => {
+  const k = dayKey(), hs = scheduled(k), d = dayStats(k) || {done:0,total:0,pct:0};
+  const yAvg = avgPct(rangeKeys(7, addDays(k,-1)));
+  const sc = screen(k), lim = state.settings.screenLimit;
+  const scStatus = sc.total > lim ? ['--crit','Over limit'] : sc.total > lim*0.8 ? ['--warn','Near limit'] : ['--good','Under limit'];
+  const l = peek(k) || {};
+  let groups = '';
+  for (const [sid, slab] of SLOTS) {
+    const list = hs.filter(h => h.slot === sid); if (!list.length) continue;
+    groups += `<div class="group"><div class="group-h"><span>${slab}</span><span>${list.filter(h=>isDone(k,h)).length}/${list.length}</span></div>${list.map(h => habitRow(h,k)).join('')}</div>`;
+  }
+  return `
+  <div class="grid g-main">
+    <div class="card">
+      <div class="row"><div><div class="muted" style="font-size:13px">${fmtDay(k,{weekday:'long',month:'long',day:'numeric'})}</div></div><span class="spacer"></span>
+        <span class="st"><i style="background:var(--accent)"></i>${dayStreak()} day streak</span></div>
+      <div class="hero" style="margin-top:10px"><div class="big">${Math.round(d.pct*100)}<small>%</small></div>
+        <div class="ink2" style="font-size:14px;padding-bottom:6px">${d.done} of ${d.total} habits done${yAvg!=null?` · 7-day avg ${pct(yAvg)}`:''}</div></div>
+      <div class="progress"><div style="width:${d.pct*100}%"></div></div>
+      ${groups || '<p class="muted" style="margin-top:16px">No habits scheduled today.</p>'}
+    </div>
+    <div class="grid" style="align-content:start">
+      <div class="card">
+        <div class="row"><h3>Screen time</h3><span class="spacer"></span><span class="st"><i style="background:var(${scStatus[0]})"></i>${scStatus[1]}</span></div>
+        <div class="sub">YouTube + games · limit ${lim} min</div>
+        <div style="font-size:34px;font-weight:600;letter-spacing:-1px">${sc.total}<span class="muted" style="font-size:15px;font-weight:500"> / ${lim} min</span></div>
+        <div class="progress" style="margin-top:10px"><div style="width:${Math.min(100,sc.total/lim*100)}%;background:var(${scStatus[0]})"></div></div>
+        ${[['youtube','YouTube',sc.yt],['games','Games',sc.games]].map(([key,lab,v]) => `
+          <div class="row" style="margin-top:12px"><span style="width:70px;font-size:13.5px">${lab}</span><span class="muted" style="font-size:13px;width:56px">${v} min</span><span class="spacer"></span>
+          ${[-15,15,30].map(n => `<button class="btn sm" data-act="scr" data-k="${key}" data-n="${n}">${n>0?'+':'−'}${Math.abs(n)}</button>`).join('')}</div>`).join('')}
+        <div class="row" style="margin-top:12px"><button class="btn sm" data-act="scrZero" ${sc.logged?'disabled':''}>${sc.logged?'Logged':'Log 0 min today'}</button></div>
+      </div>
+      <div class="card">
+        <h3>Note</h3><div class="sub">What went well, what to change tomorrow</div>
+        <textarea id="note" placeholder="Optional">${esc(l.note||'')}</textarea>
+        <div class="row" style="margin-top:8px"><span class="muted" style="font-size:12px">${l.note?'Saved':''}</span><span class="spacer"></span><button class="btn sm" data-act="saveNote">Save</button></div>
+      </div>
+    </div>
+  </div>`;
+};
+function habitRow(h, k){
+  const done = isDone(k,h), st = habitStreak(h);
+  const last = rangeKeys(7).map(d => !activeOn(h,d) ? '' : isDone(d,h) ? 'y' : d===k ? '' : 'n');
+  const meta = `${CATS[h.cat].label}${st?` · ${st} day streak`:''}`;
+  if (h.target) {
+    const n = peek(k)?.counts[h.id] || 0;
+    return `<div class="habit ${done?'done':''}"><span class="dot" style="background:${catColor(h.cat)}"></span>
+      <div class="nm">${esc(h.name)}<div class="meta">${meta}</div><div class="minibar"><div style="width:${Math.min(100,n/h.target*100)}%"></div></div></div>
+      <div class="ctr"><button data-act="bump" data-id="${h.id}" data-d="-1" aria-label="Less">−</button><span>${n}/${h.target}</span><button data-act="bump" data-id="${h.id}" data-d="1" aria-label="More">+</button></div></div>`;
+  }
+  return `<div class="habit ${done?'done':''}" data-act="toggle" data-id="${h.id}" style="cursor:pointer"><span class="dot" style="background:${catColor(h.cat)}"></span>
+    <div class="nm">${esc(h.name)}<div class="meta">${meta}</div></div>
+    <div class="strip" title="Last 7 days">${last.map(c=>`<i class="${c}"></i>`).join('')}</div>
+    <button class="cb" aria-label="${done?'Mark not done':'Mark done'}: ${esc(h.name)}"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.5l2.5 2.5L11 4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>`;
+}
+
+VIEWS.stats = () => {
+  const keys = rangeKeys(range), prev = rangeKeys(range, addDays(dayKey(), -range));
+  const cur = avgPct(keys), before = avgPct(prev);
+  const scr = keys.map(screen).filter(s => s.logged), scrAvg = scr.length ? Math.round(scr.reduce((a,b)=>a+b.total,0)/scr.length) : null;
+  const scrPrev = prev.map(screen).filter(s => s.logged), scrPrevAvg = scrPrev.length ? Math.round(scrPrev.reduce((a,b)=>a+b.total,0)/scrPrev.length) : null;
+  const over = keys.filter(k => screen(k).total > state.settings.screenLimit).length;
+  const wk = workoutsIn(keys).length, wkPrev = workoutsIn(prev).length;
+  const perfect = keys.filter(k => dayStats(k)?.pct === 1).length;
+  const lim = state.settings.screenLimit;
+  const delta = (a, b, goodUp, unit='') => {
+    if (a==null || b==null) return `<div class="dl">No previous ${range}-day data yet</div>`;
+    const dv = unit==='%' ? Math.round((a-b)*100) : Math.round(a-b);
+    if (dv === 0) return `<div class="dl">No change vs previous ${range} days</div>`;
+    const good = goodUp ? dv>0 : dv<0;
+    return `<div class="dl"><span class="${good?'up':'down'}">${dv>0?'▲':'▼'} ${Math.abs(dv)}${unit==='%'?' pts':unit}</span> vs previous ${range} days</div>`;
+  };
+
+  charts.cComp = el => columns(el, { label:'Daily completion', max:1, ticks:[0,.5,1], fmt:v=>Math.round(v*100)+'%', ref:.8, refLabel:'80% streak line', colors:['--accent'],
+    points: keys.map(k => { const d = dayStats(k); return { label: range<=7 ? DOW[dow(k)] : fmtDay(k,{month:'numeric',day:'numeric'}), values:[d?d.pct:0], empty:!d||d.pct===0, tip: `${fmtDay(k)}\n${d?`${pct(d.pct)} · ${d.done} of ${d.total}`:'No data'}` }; }) });
+  charts.cScreen = el => columns(el, { label:'Screen time', ref:lim, refLabel:`Limit ${lim}m`, colors:['--s1','--s2'], fmt:v=>v+'m',
+    points: keys.map(k => { const s = screen(k); return { label: range<=7 ? DOW[dow(k)] : fmtDay(k,{month:'numeric',day:'numeric'}), values:[s.yt, s.games], empty:!s.total, tip:`${fmtDay(k)}\n${s.logged?`YouTube ${s.yt}m · Games ${s.games}m\nTotal ${s.total}m`:'Not logged'}` }; }) });
+  const wdAgg = [1,2,3,4,5,6,0].map(d => { const ks = rangeKeys(Math.max(range,28)).filter(k => dow(k)===d && k!==dayKey()); return { d, v: avgPct(ks.length?ks:[]) }; });
+  charts.cDow = el => columns(el, { label:'Completion by weekday', max:1, ticks:[0,.5,1], fmt:v=>Math.round(v*100)+'%', colors:['--accent'], height:170,
+    points: wdAgg.map(x => ({ label:DOW[x.d], values:[x.v||0], empty:x.v==null, tip:`${DOW[x.d]} average\n${x.v==null?'No data':pct(x.v)}` })) });
+
+  const habits = state.habits.filter(h => !h.archived).map(h => ({ h, r: habitRate(h, keys) })).sort((a,b) => (b.r?.rate??-1) - (a.r?.rate??-1));
+  const cats = Object.keys(CATS).map(c => { let s=0,d=0; for (const {h,r} of habits) if (h.cat===c && r) { s+=r.sched; d+=r.done; } return { c, rate: s?d/s:null }; }).filter(x => x.rate!=null);
+
+  // heatmap: 26 weeks
+  const end = dayKey(), start = addDays(weekKey(end), -25*7);
+  let cells = '';
+  for (let k = start; k <= addDays(weekKey(end),6); k = addDays(k,1)) {
+    if (k > end) { cells += '<i class="x"></i>'; continue; }
+    const d = dayStats(k); const lv = !d ? 0 : d.pct===0 ? 0 : d.pct<.25 ? 1 : d.pct<.5 ? 2 : d.pct<.8 ? 3 : d.pct<1 ? 4 : 5;
+    cells += `<i style="background:var(--h${lv})" data-tip="${fmtDay(k)}\n${d?`${pct(d.pct)} · ${d.done} of ${d.total}`:'No data'}"></i>`;
+  }
+
+  return `
+  <div class="row"><h2 style="font-size:20px;font-weight:600;letter-spacing:-.3px">Overview</h2><span class="spacer"></span>
+    <div class="seg">${[7,30,90].map(n => `<button class="${range===n?'on':''}" data-act="range" data-n="${n}">${n}D</button>`).join('')}</div></div>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="card kpi"><div class="lab">Completion rate</div><div class="val">${pct(cur)}</div>${delta(cur,before,true,'%')}</div>
+    <div class="card kpi"><div class="lab">Day streak (80%+ days)</div><div class="val">${dayStreak()}<small> days</small></div><div class="dl">Best ${bestDayStreak()} days · ${perfect} perfect day${perfect===1?'':'s'}</div></div>
+    <div class="card kpi"><div class="lab">Avg screen time</div><div class="val">${scrAvg ?? '–'}<small> min/day</small></div>${scrAvg!=null&&scrPrevAvg!=null?delta(scrAvg,scrPrevAvg,false,' min'):`<div class="dl">${over} day${over===1?'':'s'} over the ${lim} min limit</div>`}</div>
+    <div class="card kpi"><div class="lab">Workouts</div><div class="val">${wk}</div>${delta(wk,wkPrev,true,'')}</div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><h3>Daily completion</h3><div class="sub">Share of scheduled habits done each day</div><div class="chart" id="cComp"></div></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Screen time</h3><div class="sub">Minutes per day</div>
+      <div class="legend"><span><i style="background:var(--s1)"></i>YouTube</span><span><i style="background:var(--s2)"></i>Games</span></div>
+      <div class="chart" id="cScreen"></div></div>
+    <div class="card"><h3>Weekday pattern</h3><div class="sub">Average completion by day of week${range<28?' (last 4 weeks)':''}</div><div class="chart" id="cDow"></div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Consistency by habit</h3><div class="sub">Completion rate on scheduled days, last ${range} days</div>
+      ${habits.map(({h,r}) => `<div class="hbar" data-tip="${esc(h.name)}\n${r?`${r.done} of ${r.sched} scheduled days`:'Not scheduled yet'}"><div class="nm"><span class="dot" style="background:${catColor(h.cat)}"></span><span>${esc(h.name)}</span></div><div class="tr"><div style="width:${(r?.rate||0)*100}%"></div></div><div class="v">${r?pct(r.rate):'–'}</div></div>`).join('')}
+    </div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><h3>By category</h3><div class="sub">Last ${range} days</div>
+        ${cats.map(x => `<div class="hbar"><div class="nm"><span class="dot" style="background:${catColor(x.c)}"></span><span>${CATS[x.c].label}</span></div><div class="tr"><div style="width:${x.rate*100}%;background:${catColor(x.c)}"></div></div><div class="v">${pct(x.rate)}</div></div>`).join('') || '<p class="muted">No data yet.</p>'}
+      </div>
+      <div class="card"><h3>Last 26 weeks</h3><div class="sub">Daily completion</div>
+        <div class="heat-wrap"><div class="heat-days"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span>Sun</span></div><div class="heat">${cells}</div></div>
+        <div class="row muted" style="font-size:11px;margin-top:10px;gap:4px">0%${[0,1,2,3,4,5].map(i=>`<i style="width:11px;height:11px;border-radius:3px;background:var(--h${i})"></i>`).join('')}100%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;overflow-x:auto"><h3>Habit details</h3><div class="sub">Streaks count scheduled days only</div>
+    <table><tr><th>Habit</th><th class="n">Current streak</th><th class="n">Best</th><th class="n">${range}D rate</th><th class="n">All time</th></tr>
+    ${habits.map(({h,r}) => { const all = habitRate(h, rangeKeys(Math.max(1, Math.round((fromKey(dayKey())-fromKey(h.since||state.createdAt))/864e5)+1))); return `<tr><td><span class="dot" style="background:${catColor(h.cat)};display:inline-block;margin-right:8px"></span>${esc(h.name)}</td><td class="n">${habitStreak(h)}</td><td class="n">${habitBest(h)}</td><td class="n">${r?pct(r.rate):'–'}</td><td class="n">${all?pct(all.rate):'–'}</td></tr>`; }).join('')}
+    </table></div>`;
+};
+
+VIEWS.workouts = () => {
+  const t = dayKey(), wkKeys = rangeKeys(7, addDays(weekKey(t),6)).filter(k=>k<=t);
+  const thisWeek = workoutsIn(wkKeys).length, goal = state.settings.workoutGoal;
+  const month = workoutsIn(rangeKeys(30));
+  const miles = month.filter(w=>w.type==='run').reduce((a,w)=>a+(+w.miles||0),0);
+  const all = Object.keys(state.log).sort().flatMap(k => (state.log[k].workouts||[]).map(w=>({...w,day:k}))).reverse();
+  const weeks = [...Array(12)].map((_,i) => addDays(weekKey(t), (i-11)*7));
+  charts.cWk = el => columns(el, { label:'Workouts per week', colors:['--s1','--s2','--s3'], ref:goal, refLabel:`Goal ${goal}`, height:200,
+    points: weeks.map(w => { const ws = workoutsIn(rangeKeys(7, addDays(w,6))); const c = ty => ws.filter(x=>x.type===ty).length; return { label: fmtDay(w,{month:'numeric',day:'numeric'}), values:[c('lift'),c('run'),c('home')], empty:!ws.length, tip:`Week of ${fmtDay(w,{month:'short',day:'numeric'})}\nLift ${c('lift')} · Run ${c('run')} · Home ${c('home')}` }; }) });
+  const prs = Object.values(state.prs).sort((a,b) => b.e1rm - a.e1rm);
+  return `
+  <div class="grid g3">
+    <div class="card kpi"><div class="lab">This week</div><div class="val">${thisWeek}<small> / ${goal} sessions</small></div><div class="progress"><div style="width:${Math.min(100,thisWeek/goal*100)}%"></div></div></div>
+    <div class="card kpi"><div class="lab">Last 30 days</div><div class="val">${month.length}<small> sessions</small></div><div class="dl">${month.filter(w=>w.type==='lift').length} lift · ${month.filter(w=>w.type==='run').length} run · ${month.filter(w=>w.type==='home').length} home</div></div>
+    <div class="card kpi"><div class="lab">Miles, last 30 days</div><div class="val">${Math.round(miles*10)/10}<small> mi</small></div><div class="dl">${all.length} sessions logged all time</div></div>
+  </div>
+  <div class="grid g-main" style="margin-top:16px">
+    <div class="card"><h3>Log a workout</h3><div class="sub">Also checks off today's Workout habit</div>
+      <div class="seg" style="margin-bottom:12px">${['lift','run','home'].map(x=>`<button class="${wType===x?'on':''}" data-act="wType" data-t="${x}">${{lift:'Lift',run:'Run',home:'Home'}[x]}</button>`).join('')}</div>
+      ${wType==='lift' ? `<div class="grid lift" style="gap:10px">
+          <label class="f">Exercise<input id="w_ex" list="exl" placeholder="Bench press"></label><label class="f">Weight (lb)<input id="w_wt" type="number" inputmode="decimal"></label>
+          <label class="f">Reps<input id="w_reps" type="number" inputmode="numeric"></label><label class="f">Sets<input id="w_sets" type="number" inputmode="numeric" value="3"></label></div>
+          <datalist id="exl">${[...new Set(['Bench press','Squat','Deadlift','Overhead press','Barbell row','Pull-ups','Lat pulldown','Leg press','Curls','Dips','RDL',...prs.map(p=>p.name)])].map(e=>`<option value="${esc(e)}">`).join('')}</datalist>`
+      : wType==='run' ? `<div class="grid g2" style="gap:10px"><label class="f">Miles<input id="w_mi" type="number" step="0.1" inputmode="decimal"></label><label class="f">Minutes<input id="w_min" type="number" inputmode="numeric"></label></div>`
+      : `<div class="grid g2" style="gap:10px"><label class="f">What<input id="w_ex" placeholder="Pushups, core circuit"></label><label class="f">Minutes<input id="w_min" type="number" inputmode="numeric"></label></div>`}
+      <div class="row" style="margin-top:12px"><button class="btn pri" data-act="logW">Log workout</button></div>
+    </div>
+    <div class="card"><h3>Personal records</h3><div class="sub">Estimated 1-rep max (Epley)</div>
+      ${prs.length ? `<table><tr><th>Lift</th><th class="n">Best set</th><th class="n">Est. 1RM</th></tr>${prs.map(p=>`<tr><td>${esc(p.name)}</td><td class="n">${p.weight}×${p.reps}</td><td class="n"><b>${p.e1rm}</b></td></tr>`).join('')}</table>` : '<p class="muted" style="font-size:14px">Log a lift to start tracking records.</p>'}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Sessions per week</h3><div class="sub">Last 12 weeks</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Lift</span><span><i style="background:var(--s2)"></i>Run</span><span><i style="background:var(--s3)"></i>Home</span></div>
+    <div class="chart" id="cWk"></div></div>
+  <div class="card" style="margin-top:16px"><h3>History</h3><div class="sub">Most recent first</div>
+    ${all.length ? `<table>${all.slice(0,40).map(w=>`<tr><td class="muted" style="white-space:nowrap;width:120px">${fmtDay(w.day)}</td><td>${esc(describeW(w))}</td></tr>`).join('')}</table>` : '<p class="muted" style="font-size:14px">No workouts yet.</p>'}
+  </div>`;
+};
+
+/* ---------- insights ---------- */
+function computeInsights(){
+  const out = [], t = dayKey(), lim = state.settings.screenLimit;
+  const w1 = rangeKeys(7, addDays(t,-1)), w0 = rangeKeys(7, addDays(t,-8));
+  const a = avgPct(w1), b = avgPct(w0);
+  const days = Math.round((fromKey(t)-fromKey(state.createdAt))/864e5);
+  if (days < 3) out.push(['i','Building a baseline', `You've been tracking for ${days+1} day${days?'s':''}. Insights get sharper after a week of data.`]);
+  if (a!=null && b!=null) { const d = Math.round((a-b)*100); out.push([d>=0?'▲':'▼', `Completion ${d>=0?'up':'down'} ${Math.abs(d)} pts week over week`, `Last 7 days averaged ${pct(a)}, compared with ${pct(b)} the week before.`]); }
+  // motivation fade: first full week vs last 7
+  if (days >= 14) {
+    const first = avgPct(rangeKeys(7, addDays(state.createdAt,6)));
+    if (first!=null && a!=null && first - a >= 0.15) out.push(['!','Early-momentum fade', `Your first week averaged ${pct(first)}; the last 7 days averaged ${pct(a)}. This drop is common in weeks 2–3. Trimming to your 4–5 most important habits for a week usually holds the rate up better than pushing all of them.`]);
+  }
+  const hr = state.habits.filter(h=>!h.archived).map(h=>({h, r:habitRate(h, rangeKeys(30))})).filter(x=>x.r && x.r.sched>=3).sort((x,y)=>y.r.rate-x.r.rate);
+  if (hr.length >= 2) {
+    const top = hr[0], low = hr[hr.length-1];
+    out.push(['★', `Most consistent: ${top.h.name}`, `${pct(top.r.rate)} of scheduled days over the last 30 days (${top.r.done}/${top.r.sched}).`]);
+    if (low.r.rate < 0.7) out.push(['↓', `Least consistent: ${low.h.name}`, `${pct(low.r.rate)} (${low.r.done}/${low.r.sched}). Consider moving it to a different time of day or making it smaller.`]);
+  }
+  const wd = [0,1,2,3,4,5,6].map(d => ({d, v: avgPct(rangeKeys(28, addDays(t,-1)).filter(k=>dow(k)===d))})).filter(x=>x.v!=null);
+  if (wd.length >= 5) { const s = [...wd].sort((x,y)=>x.v-y.v); if (s[s.length-1].v - s[0].v >= 0.15) out.push(['◷', `${DOWL[s[0].d]} is your weakest day`, `${DOWL[s[0].d]}s average ${pct(s[0].v)} vs ${pct(s[s.length-1].v)} on ${DOWL[s[s.length-1].d]}s (last 4 weeks).`]); }
+  const sc = w1.map(screen).filter(s=>s.logged);
+  if (sc.length) { const avg = Math.round(sc.reduce((x,y)=>x+y.total,0)/sc.length), over = sc.filter(s=>s.total>lim).length;
+    out.push([over?'!':'✓', `Screen time averaged ${avg} min/day`, `${over ? `${over} of the last ${sc.length} logged days went over your ${lim} min limit.` : `Every logged day in the last week stayed under your ${lim} min limit.`}`]); }
+  const unlogged = w1.filter(k => k>=state.createdAt && !screen(k).logged).length;
+  if (unlogged >= 3) out.push(['?', 'Screen time missing', `${unlogged} of the last 7 days have no screen time logged, so averages may be off.`]);
+  const hw = state.habits.find(h=>h.id==='homework'), sc2 = rangeKeys(28, addDays(t,-1));
+  if (hw) { const withHw = sc2.filter(k=>activeOn(hw,k) && isDone(k,hw) && screen(k).logged), without = sc2.filter(k=>activeOn(hw,k) && !isDone(k,hw) && screen(k).logged);
+    const m = ks => Math.round(ks.reduce((x,k)=>x+screen(k).total,0)/ks.length);
+    if (withHw.length>=3 && without.length>=3 && Math.abs(m(withHw)-m(without)) >= 15) { out.push(['≈', 'Homework vs screen time', `On days homework was done first you averaged ${m(withHw)} min of screens, vs ${m(without)} min on days it wasn't.`]); } }
+  const wk = workoutsIn(rangeKeys(7)).length, g = state.settings.workoutGoal;
+  out.push([wk>=g?'✓':'◦', `${wk} of ${g} workouts in the last 7 days`, wk>=g ? 'On target.' : `${g-wk} more to hit your weekly goal.`]);
+  return out;
+}
+VIEWS.insights = () => {
+  const ins = computeInsights(), ai = hasAI(), r = state.ai.review;
+  return `
+  <div class="grid g-main">
+    <div class="card"><h3>Insights</h3><div class="sub">Calculated from your data on this device</div>
+      ${ins.map(([ic,t,p]) => `<div class="ins"><div class="ic">${ic}</div><div><b>${esc(t)}</b><p>${esc(p)}</p></div></div>`).join('')}
+    </div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><h3>AI weekly review</h3><div class="sub">${ai?`Uses ${state.ai.provider==='gemini'?'Google Gemini':'Claude'} with your key`:'Add an API key in Settings to enable'}</div>
+        ${r ? `<div class="ai-out">${esc(r.text)}</div><div class="muted" style="font-size:12px;margin-top:8px">Generated ${new Date(r.t).toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})}</div>` : ''}
+        <div class="row" style="margin-top:12px"><button class="btn ${r?'':'pri'}" data-act="review" ${ai&&!busy?'':'disabled'}>${busy==='review'?'Analyzing…':r?'Regenerate':'Generate review'}</button></div>
+      </div>
+      <div class="card"><h3>Ask about your data</h3><div class="sub">e.g. "Why do I miss reading?"</div>
+        <div class="row" style="flex-wrap:nowrap"><input id="ask" placeholder="${ai?'Ask a question':'Add an API key first'}" ${ai?'':'disabled'} onkeydown="if(event.key==='Enter')act.ask()"><button class="btn" data-act="ask" ${ai&&!busy?'':'disabled'}>Ask</button></div>
+        ${busy==='ask'?'<p class="muted" style="margin-top:12px;font-size:14px">Thinking…</p>':lastAnswer?`<div class="ai-out" style="margin-top:12px"><b style="color:var(--ink)">${esc(lastAnswer.q)}</b>\n${esc(lastAnswer.a)}</div>`:''}
+      </div>
+    </div>
+  </div>`;
+};
+let busy = false, lastAnswer = null;
+
+VIEWS.settings = () => {
+  const s = state.settings, a = state.ai, hasAscend = !!localStorage.getItem('ascend.v1');
+  return `
+  <div class="grid g2">
+    <div class="card"><h3>General</h3><div class="sub">&nbsp;</div>
+      <div class="grid g2" style="gap:12px">
+        <label class="f">Name<input id="s_name" value="${esc(s.name)}"></label>
+        <label class="f">Theme<select id="s_theme">${['auto','light','dark'].map(x=>`<option value="${x}" ${s.theme===x?'selected':''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label>
+        <label class="f">Screen limit (min/day)<input id="s_lim" type="number" value="${s.screenLimit}"></label>
+        <label class="f">Workouts per week goal<input id="s_wg" type="number" value="${s.workoutGoal}"></label>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" data-act="saveGeneral">Save</button></div>
+    </div>
+    <div class="card"><h3>AI analysis</h3><div class="sub">Optional. Your key stays on this device and is never in backups.</div>
+      <div class="grid g2" style="gap:12px">
+        <label class="f">Provider<select id="a_p"><option value="none" ${a.provider==='none'?'selected':''}>Off</option><option value="gemini" ${a.provider==='gemini'?'selected':''}>Google Gemini (free tier)</option><option value="anthropic" ${a.provider==='anthropic'?'selected':''}>Claude (paid)</option></select></label>
+        <span></span>
+        <label class="f">Gemini key<input id="a_kg" type="password" autocomplete="off" value="${esc(a.keys.gemini)}"></label>
+        <label class="f">Gemini model<input id="a_mg" value="${esc(a.models.gemini)}"></label>
+        <label class="f">Claude key<input id="a_ka" type="password" autocomplete="off" value="${esc(a.keys.anthropic)}"></label>
+        <label class="f">Claude model<input id="a_ma" value="${esc(a.models.anthropic)}"></label>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" data-act="saveAI">Save</button><button class="btn" data-act="testAI">Test</button><span id="testOut" class="muted" style="font-size:12.5px"></span></div>
+      <p class="muted" style="font-size:12px;margin-top:10px;line-height:1.5">Free key: aistudio.google.com → Get API key (a personal Google account works best).</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;overflow-x:auto"><div class="row"><h3>Habits</h3><span class="spacer"></span><button class="btn sm" data-act="addHabit">Add habit</button></div><div class="sub">Changes apply going forward; history is kept</div>
+    <table><tr><th>Name</th><th>Category</th><th>Time</th><th>Daily target</th><th>Days</th><th></th></tr>
+    ${state.habits.filter(h=>!h.archived).map(h => `<tr>
+      <td><input data-h="${h.id}" data-f="name" value="${esc(h.name)}" style="min-width:170px;padding:6px 8px"></td>
+      <td><select data-h="${h.id}" data-f="cat" style="padding:6px">${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${h.cat===k?'selected':''}>${v.label}</option>`).join('')}</select></td>
+      <td><select data-h="${h.id}" data-f="slot" style="padding:6px">${SLOTS.map(([k,v])=>`<option value="${k}" ${h.slot===k?'selected':''}>${v}</option>`).join('')}</select></td>
+      <td><input data-h="${h.id}" data-f="target" type="number" min="0" value="${h.target||''}" placeholder="—" title="Leave empty for a simple checkbox" style="width:70px;padding:6px"></td>
+      <td style="white-space:nowrap">${'SMTWTFS'.split('').map((c,i)=>`<button class="btn sm" style="padding:3px 7px;margin:1px;${h.days.includes(i)?'background:var(--accent);border-color:var(--accent);color:#fff':''}" data-act="day" data-id="${h.id}" data-d="${i}">${c}</button>`).join('')}</td>
+      <td><button class="btn sm danger" data-act="archive" data-id="${h.id}">Remove</button></td></tr>`).join('')}
+    </table>
+    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="saveHabits">Save habits</button></div></div>
+
+  <div class="card" style="margin-top:16px"><h3>Data</h3><div class="sub">Each device keeps its own data. Move it with a backup file.</div>
+    <div class="row">
+      <button class="btn" data-act="export">Export backup</button>
+      <label class="btn">Import backup<input type="file" accept="application/json" style="display:none" onchange="act.importFile(this)"></label>
+      ${hasAscend?'<button class="btn" data-act="importAscend">Import history from Ascend (game version)</button>':''}
+      <span class="spacer"></span><button class="btn danger" data-act="reset">Erase all data</button>
+    </div></div>`;
+};
+
+/* ---------- AI ---------- */
+const hasAI = () => state.ai.provider !== 'none' && !!(state.ai.keys[state.ai.provider]||'').trim();
+function dataSummary(){
+  const t = dayKey(), k14 = rangeKeys(14), s = state.settings;
+  const lines = k14.map(k => { const d = dayStats(k), sc = screen(k), l = peek(k); if (!d) return null;
+    const missed = scheduled(k).filter(h=>!isDone(k,h)).map(h=>h.name);
+    return `${k} (${DOW[dow(k)]}${k===t?', today, in progress':''}): ${d.done}/${d.total}${missed.length?` missed: ${missed.join(', ')}`:''}; screen ${sc.logged?sc.total+' min':'not logged'}; workouts: ${(l?.workouts||[]).map(describeW).join('; ')||'none'}${l?.note?`; note: "${l.note.slice(0,200)}"`:''}`; }).filter(Boolean);
+  const hr = state.habits.filter(h=>!h.archived).map(h => { const r = habitRate(h, rangeKeys(30)); return `${h.name} [${CATS[h.cat].label}, ${SLOTS.find(x=>x[0]===h.slot)[1]}]: 30d ${r?pct(r.rate):'n/a'}, streak ${habitStreak(h)}`; });
+  return `Tracking since ${state.createdAt}. Screen limit ${s.screenLimit} min/day (YouTube + games). Workout goal ${s.workoutGoal}/week. Day streak (80%+ days): ${dayStreak()}, best ${bestDayStreak()}.
+Habits (30-day completion on scheduled days):
+${hr.join('\n')}
+Last 14 days:
+${lines.join('\n')}
+PRs: ${Object.values(state.prs).map(p=>`${p.name} ${p.weight}x${p.reps} (e1RM ${p.e1rm})`).join('; ')||'none'}
+Computed insights: ${computeInsights().map(x=>x[1]).join('; ')}`;
+}
+function sysPrompt(){
+  return `You are a concise, data-driven habit analyst inside a personal habit-tracking app used by ${state.settings.name}, a student. Their goals: school (homework before screens, studying, reading, planning), fitness (lifting, running, home workouts nearly every day), health (water, protein, stretching, no junk food, sleep by 10 PM), limiting YouTube + video games, and building/coding projects. They tend to start strong and fade after a week or two.
+Tone: calm, direct, specific, like a good analyst. No hype, no game or RPG language, no emojis, no motivational clichés. Ground every claim in the numbers provided; if the data is thin, say so. Prefer plain sentences and short bullet lists. Safety: no extreme diet or dangerous training advice; for pain or injury, suggest rest and talking to a parent, coach or doctor.`;
+}
+async function askAI(prompt){
+  const a = state.ai, p = a.provider, key = (a.keys[p]||'').trim();
+  if (p==='none' || !key) throw new Error('Add an API key in Settings first.');
+  const system = sysPrompt() + '\n\nDATA:\n' + dataSummary();
+  if (p === 'gemini') {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(a.models.gemini||'gemini-flash-latest')}:generateContent`, {
+      method:'POST', headers:{'content-type':'application/json','x-goog-api-key':key},
+      body: JSON.stringify({ system_instruction:{parts:[{text:system}]}, contents:[{role:'user',parts:[{text:prompt}]}] }) });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(data.error?.message || `Gemini error ${res.status}`);
+    const text = (data.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
+    if (!text) throw new Error('No response text.'); return text;
+  }
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-beta':'server-side-fallback-2026-07-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model:a.models.anthropic||'claude-opus-5-5', max_tokens:4096, output_config:{effort:'low'}, fallbacks:'default', system, messages:[{role:'user',content:prompt}] }) });
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data.error?.message || `Claude error ${res.status}`);
+  if (data.stop_reason === 'refusal') throw new Error('The request was declined. Try rephrasing.');
+  const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+  if (!text) throw new Error('No response text.'); return text;
+}
+
+/* ---------- actions ---------- */
+const act = {
+  nav: d => { view = d.v; render(); scrollTo({top:0}); },
+  toggle: d => { const h = state.habits.find(x=>x.id===d.id); setDone(h, !isDone(dayKey(),h)); },
+  bump: d => bump(state.habits.find(x=>x.id===d.id), +d.d),
+  scr: d => { const s = L(dayKey()).screen; s[d.k] = Math.max(0,(s[d.k]||0)+(+d.n)); s.logged = true; save(); render(); },
+  scrZero: () => { L(dayKey()).screen.logged = true; save(); render(); },
+  saveNote: () => { L(dayKey()).note = document.getElementById('note').value.trim(); save(); render(); toast('Note saved'); },
+  range: d => { range = +d.n; render(); },
+  wType: d => { wType = d.t; render(); },
+  logW: () => {
+    const v = id => document.getElementById(id)?.value?.trim(); let w;
+    if (wType==='lift') { if (!v('w_ex')) return toast('Enter an exercise'); w = {type:'lift', exercise:v('w_ex'), weight:+v('w_wt')||0, reps:+v('w_reps')||0, sets:+v('w_sets')||1}; }
+    else if (wType==='run') { if (!(+v('w_mi'))) return toast('Enter miles'); w = {type:'run', miles:+v('w_mi'), minutes:+v('w_min')||0}; }
+    else { if (!v('w_ex') && !(+v('w_min'))) return toast('Describe the workout'); w = {type:'home', exercise:v('w_ex')||'Home workout', minutes:+v('w_min')||0}; }
+    const k = dayKey(), l = L(k); w.at = Date.now(); l.workouts.push(w);
+    let msg = 'Workout logged';
+    if (w.type==='lift' && w.weight && w.reps) {
+      const key = w.exercise.toLowerCase(), e1rm = Math.round(w.weight*(1+w.reps/30)), prev = state.prs[key];
+      if (!prev || e1rm > prev.e1rm) { state.prs[key] = {name:w.exercise, weight:w.weight, reps:w.reps, e1rm, day:k}; if (prev) msg = `New record: ${w.exercise} est. 1RM ${e1rm} lb (was ${prev.e1rm})`; }
+    }
+    const wh = state.habits.find(h=>h.id==='workout' && !h.archived);
+    if (wh && activeOn(wh,k)) l.done.workout = l.done.workout || Date.now();
+    save(); render(); toast(msg);
+  },
+  review: async () => {
+    busy = 'review'; render();
+    try { const text = await askAI(`Write my weekly review. Structure: 1) one-sentence summary with the key number, 2) what's working (2-3 bullets), 3) what's slipping (2-3 bullets with numbers), 4) two specific changes for next week. Under 200 words.`); state.ai.review = { t:Date.now(), text }; save(); }
+    catch(e) { toast(e.message); }
+    busy = false; render();
+  },
+  ask: async () => {
+    const q = document.getElementById('ask')?.value.trim(); if (!q || busy) return;
+    busy = 'ask'; render();
+    try { lastAnswer = { q, a: await askAI(`${q}\n\nAnswer in under 120 words.`) }; } catch(e) { toast(e.message); }
+    busy = false; render();
+  },
+  saveGeneral: () => { const s = state.settings, v = id => document.getElementById(id).value; s.name = v('s_name').trim()||'Me'; s.theme = v('s_theme'); s.screenLimit = Math.max(1,+v('s_lim')||120); s.workoutGoal = Math.max(1,+v('s_wg')||6); applyTheme(); save(); render(); toast('Saved'); },
+  saveAI: () => { const a = state.ai, v = id => document.getElementById(id).value.trim(); a.provider = v('a_p'); a.keys.gemini = v('a_kg'); a.keys.anthropic = v('a_ka'); a.models.gemini = v('a_mg')||'gemini-flash-latest'; a.models.anthropic = v('a_ma')||'claude-opus-5-5'; save(); toast('Saved'); },
+  testAI: async () => { act.saveAI(); const o = document.getElementById('testOut'); o.textContent = 'Testing…';
+    try { const r = await askAI('Connection test: reply with one short sentence summarizing my completion rate.'); o.style.color='var(--good-text)'; o.textContent = '✓ '+r; } catch(e) { o.style.color='var(--crit-text)'; o.textContent = e.message; } },
+  saveHabits: (quiet) => {
+    document.querySelectorAll('[data-h]').forEach(i => { const h = state.habits.find(x=>x.id===i.dataset.h); if (!h) return;
+      if (i.dataset.f==='target') { const n = Math.max(0, +i.value||0); if (n) { h.target = n; h.unit = h.unit||''; } else delete h.target; } else h[i.dataset.f] = i.value; });
+    save(); if (quiet!==true) { render(); toast('Habits saved'); }
+  },
+  addHabit: () => { act.saveHabits(true); state.habits.push({ id:'h'+Date.now().toString(36), name:'New habit', cat:'focus', slot:'anytime', days:[...ALL], since:dayKey() }); save(); render(); },
+  day: d => { act.saveHabits(true); const h = state.habits.find(x=>x.id===d.id), i = +d.d; h.days = h.days.includes(i) ? h.days.filter(x=>x!==i) : [...h.days,i].sort(); save(); render(); },
+  archive: d => { const h = state.habits.find(x=>x.id===d.id); if (!confirm(`Remove "${h.name}"? Past data stays in your stats.`)) return; h.archived = true; h.archivedAt = dayKey(); save(); render(); },
+  export: () => { const c = JSON.parse(JSON.stringify(state)); c.ai.keys = {gemini:'',anthropic:''}; const b = new Blob([JSON.stringify(c)],{type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `ascend-stats-${dayKey()}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); },
+  importFile: inp => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!d.habits || !d.log) throw 0; if (!confirm('Replace this device\'s data with the backup?')) return; const keys = state.ai.keys; state = Object.assign(fresh(), d); state.ai.keys = keys; save(); applyTheme(); render(); toast('Backup imported'); } catch(e) { toast('Not an Ascend Stats backup'); } }; r.readAsText(f); },
+  importAscend: () => { if (!confirm('Import habits and history from the Ascend game version on this device? This replaces current Stats data.')) return; importFromAscend(); render(); toast('Imported from Ascend'); },
+  reset: () => { if (!confirm('Erase all habits and history on this device?')) return; const keys = state.ai.keys, p = state.ai.provider; state = fresh(); state.ai.keys = keys; state.ai.provider = p; save(); render(); },
+  closeModal: () => document.getElementById('modal').classList.remove('open'),
+  firstImport: () => { importFromAscend(); act.closeModal(); render(); toast('Imported from Ascend'); },
+  firstSkip: () => { state.imported = true; save(); act.closeModal(); },
+};
+document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (!el || el.disabled) return; act[el.dataset.act]?.(el.dataset, el); });
+
+function importFromAscend(){
+  const g = JSON.parse(localStorage.getItem('ascend.v1') || 'null'); if (!g) return;
+  const keys = state.ai.keys;
+  const s = fresh();
+  s.createdAt = g.createdAt || s.createdAt;
+  s.settings.name = g.profile?.name || s.settings.name;
+  s.settings.screenLimit = g.profile?.screenLimit || s.settings.screenLimit;
+  s.habits = (g.quests||[]).map(q => ({ id:q.id, name:q.name, cat:CATS[q.cat]?q.cat:'focus', slot:q.slot, days:[...q.days], since:s.createdAt, ...(q.target?{target:q.target,unit:q.unit||''}:{}), ...(q.archived?{archived:true,archivedAt:dayKey()}:{}) }));
+  for (const [k,l] of Object.entries(g.log||{})) {
+    const done = {}; for (const [id,v] of Object.entries(l.done||{})) if (!v?.rest) done[id] = v?.at || 1;
+    s.log[k] = { done, counts:{...(l.counts||{})}, screen:{ youtube:l.screen?.youtube||0, games:l.screen?.games||0, logged:!!l.screen?.logged }, workouts:[...(l.workouts||[])], note:l.journal||'' };
+  }
+  s.prs = JSON.parse(JSON.stringify(g.prs||{}));
+  s.ai.keys = (keys.gemini||keys.anthropic) ? keys : { ...(g.coach?.keys||{gemini:'',anthropic:''}) };
+  s.ai.provider = state.ai.provider !== 'none' ? state.ai.provider : (g.coach?.provider || 'none');
+  s.imported = true;
+  state = s; save();
+}
+
+/* ---------- misc ---------- */
+function toast(m){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(()=>t.remove(), 2600); }
+function applyTheme(){ const t = state.settings.theme; if (t==='auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
+
+load(); applyTheme(); render();
+if (!state.imported && localStorage.getItem('ascend.v1') && Object.keys(state.log).length === 0) {
+  document.getElementById('mbox').innerHTML = `<h3 style="font-size:16px">Bring over your Ascend history?</h3>
+    <p class="ink2" style="font-size:14px;line-height:1.5;margin:8px 0 16px">Found data from the Ascend game version on this device. Import your habits, check-ins, screen time and workouts so your stats start with real history.</p>
+    <div class="row"><button class="btn pri" data-act="firstImport">Import</button><button class="btn" data-act="firstSkip">Start fresh</button></div>`;
+  document.getElementById('modal').classList.add('open');
+}
+let lastDay = dayKey();
+setInterval(() => { if (dayKey() !== lastDay) { lastDay = dayKey(); render(); } }, 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && dayKey() !== lastDay) { lastDay = dayKey(); render(); } });
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
